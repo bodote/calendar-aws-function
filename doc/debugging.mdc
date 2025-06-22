@@ -1,7 +1,0 @@
----
-description: When tests are run with e.g. `mvn test` and there are  errors in one of the tests always do this:
-globs: 
-alwaysApply: false
----
-* enable more debugging output by changing the log levels of the code under test to "DEBUG" in applicationyml or application-test.yml so that we can see, where there problem is 
-* for example: use any debug options to exactly see how spring boot does resolve the requested path if the spring boot does respond with a http status 404 not found

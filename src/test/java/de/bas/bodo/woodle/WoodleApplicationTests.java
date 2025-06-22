@@ -1,13 +1,13 @@
-package de.bas.bodo.calendar_lambda;
+package de.bas.bodo.woodle;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CalendarLambdaApplicationTests {
+class WoodleApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

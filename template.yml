@@ -1,20 +1,20 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Calendar Lambda Function using AWS Serverless Java Container
+Description: Woodle Lambda Function using AWS Serverless Java Container
 
 Resources:
-  CalendarLambdaFunction:
+  WoodleLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: calendar-lambda
+      FunctionName: woodle
       Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
       Runtime: java21
       MemorySize: 512
       Timeout: 30
-      CodeUri: target/calendar-lambda-0.0.1-SNAPSHOT.jar
+      CodeUri: target/woodle-0.0.1-SNAPSHOT.jar
       Environment:
         Variables:
-          MAIN_CLASS: de.bas.bodo.calendar_lambda.CalendarLambdaApplication
+          MAIN_CLASS: de.bas.bodo.woodle.WoodleApplication
       Events:
         ApiGateway:
           Type: Api
@@ -23,6 +23,6 @@ Resources:
             Method: ANY
 
 Outputs:
-  CalendarLambdaApi:
-    Description: "API Gateway endpoint URL for Calendar Lambda function"
+  WoodleLambdaApi:
+    Description: "API Gateway endpoint URL for Woodle Lambda function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/" 
