@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Calendar Lambda Function using AWS Serverless Java Container
+
+Resources:
+  CalendarLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: calendar-lambda
+      Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
+      Runtime: java21
+      MemorySize: 512
+      Timeout: 30
+      CodeUri: target/calendar-lambda-0.0.1-SNAPSHOT.jar
+      Environment:
+        Variables:
+          MAIN_CLASS: de.bas.bodo.calendar_lambda.CalendarLambdaApplication
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  CalendarLambdaApi:
+    Description: "API Gateway endpoint URL for Calendar Lambda function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/" 

@@ -1,0 +1,70 @@
+---
+description: When writing or changing unit tests and test with  `@SpringBootTest` or `@WebMvcTest` do this:
+globs: 
+alwaysApply: false
+---
+* prefer using `@WebMvcTest` over `@SpringBootTest` because `@WebMvcTest` are faster.
+* When writing Spring Boot tests for an HTML page and testing specific elements like icons, forms, and input fields, use MockMvc with HTML Parsers Jsoup: `org.jsoup:jsoup:1.20.1` and use it like this 
+```java 
+// Parse the HTML content with Jsoup
+Document doc = Jsoup.parse(htmlContent);
+// Test for a specific icon (e.g., <i class="fas fa-user"></i>)
+assertThat(doc.select("div[data-test-section='event-details'] div[data-test-item='date']:contains(2024-03-20)")
+            .size()).as("check event date").isEqualTo(1);
+```
+* when adding new tests check always, if there is any code duplication with previous existing tests and find way to avoid that code duplication
+* for @SpringBootTests use
+   * the src/main/resources/application.yml (not the "application.properties" ) 
+   * don't use a src/test/resources/application.yml, instaead either use a "test" profile and a src/test/resources/application-test.yml or use @TestPropertySource for the @SpringBootTests to overwrite some properties
+* to make test more stable for small changes in the html and JTE templates use the HTML `data-*` attribute: e.g. use `data-test-section='event-details'` to tag a html element and use that tag in all test, where you need to find that specific html element. 
+* keep in mind that for redirecting after a `POST` to a `GET` request the status code `303` ist most appropriate.
+* using Jgiven to make test much more readable: 
+  * instead of  using 
+```java
+mockMvc.perform(post("/schedule-event-step3")
+                .param("expiryDate", expiryDate)
+                .session(session))
+                .andExpect(status().isOk())
+                .andReturn();
+
+```
+or similar and working with JGiven using these imports:
+```
+import com.tngtech.jgiven.Stage;
+import com.tngtech.jgiven.annotation.ScenarioStage;
+import com.tngtech.jgiven.annotation.ScenarioState;
+import com.tngtech.jgiven.junit5.ScenarioTest;
+```
+
+ we need to split the `mockMvc` calls in 2 pieces: 
+
+the first goes into the "When" `Stage`: 
+```java
+@ScenarioState
+ResultActions resultAction;
+
+public WhenWoodleViewMvcAction user_clicks_schedule_event_button2() throws Exception {
+        // Go to the homepage and click the schedule event button (GET /schedule-event)
+        resultAction = mockMvc.perform(get("/schedule-event").session(session));         
+        return self();
+    }
+```
+
+and the 2nd that goes into the "Then" `Stage` 
+
+```java
+@ScenarioState
+ResultActions resultAction;
+ public ThenWoodleViewMvcOutcome user_should_be_redirected_to_index_html() throws Exception {
+        resultAction.andExpect(...);   
+        return self();
+    } 
+   
+```
+ * the `given()`, `when()` and `then()` actions in jgiven should realy reflext the basic idea of Test Driven Development:
+ * `given()` methods calls should realy set the preconditions of the test, while
+ * `when()`  methods calls should realy do the actual action. that part we want to test 
+ * and `then()` should verify the results.
+ * there is no point having a `when()...and()..and().user_clicks_next();` when in fact the body of `user_clicks_next()`is actually empty because the action is already called in another method call of the test.  `user_clicks_next()` should realy contain a body that does exactly simulate a user klicking a "next" button on the page under test. 
+
+
