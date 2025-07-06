@@ -5,6 +5,11 @@ the schedule-event form should now add several more input fields according to th
 
 ## acceptance criteria
 * all input fields shown in the ![Schedule Event Form](schedule-event.png) should be on the "schedule-event" page, test first ! 
+* the required fields are 
+  * "Your name:"
+  * "Email adress:"
+  * "Activity title"
+  * "Description" as a multiline input field
 
 ## Hints
 * to test for the string is not sufficient , test that there is actually an input field with that label

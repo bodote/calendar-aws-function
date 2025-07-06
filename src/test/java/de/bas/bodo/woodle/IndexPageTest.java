@@ -30,31 +30,21 @@ class IndexPageTest extends
     private MockMvc mockMvc;
 
     @Test
-    void shouldDisplayHelloWorldOnIndexPage() throws Exception {
+    void shouldDisplayIndexPageWithAllRequiredElements() throws Exception {
         given().the_application_is_running_with_mock_mvc(mockMvc);
         when().the_user_visits_the_index_page();
-        then().the_index_page_is_displayed();
+        then().the_index_page_is_displayed()
+                .and().the_schedule_event_button_is_displayed()
+                .and().the_schedule_event_button_links_to_form_page()
+                .and().the_woodle_logo_is_displayed()
+                .and().the_woodle_logo_is_downloadable();
     }
 
     @Test
-    void shouldDisplayScheduleEventButtonOnIndexPage() throws Exception {
-        given().the_application_is_running_with_mock_mvc(mockMvc);
-        when().the_user_visits_the_index_page();
-        then().the_schedule_event_button_is_displayed();
-    }
-
-    @Test
-    void shouldDisplayFormPageWhenScheduleEventButtonIsClicked() throws Exception {
+    void shouldDisplayAllRequiredFieldsOnScheduleEventForm() throws Exception {
         given().the_application_is_running_with_mock_mvc(mockMvc);
         when().the_user_visits_the_schedule_event_form_page();
-        then().the_form_page_with_your_name_field_is_displayed();
-    }
-
-    @Test
-    void shouldHaveScheduleEventButtonWithCorrectLink() throws Exception {
-        given().the_application_is_running_with_mock_mvc(mockMvc);
-        when().the_user_visits_the_index_page();
-        then().the_schedule_event_button_links_to_form_page();
+        then().the_schedule_event_form_with_all_required_fields_is_displayed();
     }
 
     @Test
@@ -62,6 +52,14 @@ class IndexPageTest extends
         given().the_application_is_running_with_mock_mvc(mockMvc);
         when().the_user_visits_the_root_path();
         then().the_user_is_redirected_to_index_html();
+    }
+
+    @Test
+    void shouldDisplayWoodleLogoOnScheduleEventPage() throws Exception {
+        given().the_application_is_running_with_mock_mvc(mockMvc);
+        when().the_user_visits_the_schedule_event_form_page();
+        then().the_woodle_logo_is_displayed_on_schedule_event_page()
+                .and().the_woodle_logo_is_downloadable();
     }
 
     public static class GivenIndexPage extends Stage<GivenIndexPage> {
@@ -95,11 +93,15 @@ class IndexPageTest extends
             result = mockMvc.perform(get("/"));
             return self();
         }
+
     }
 
     public static class ThenIndexPageIsDisplayed extends Stage<ThenIndexPageIsDisplayed> {
         @ExpectedScenarioState
         private ResultActions result;
+
+        @ExpectedScenarioState
+        private MockMvc mockMvc;
 
         public ThenIndexPageIsDisplayed the_index_page_is_displayed() throws Exception {
             result.andExpect(status().isOk())
@@ -116,23 +118,6 @@ class IndexPageTest extends
 
             assertThat(doc.select("a[data-test-schedule-event-button]").size())
                     .as("Schedule Event button should be present")
-                    .isEqualTo(1);
-            return self();
-        }
-
-        public ThenIndexPageIsDisplayed the_form_page_with_your_name_field_is_displayed() throws Exception {
-            result.andExpect(status().isOk())
-                    .andExpect(view().name("schedule-event"));
-
-            String htmlContent = result.andReturn().getResponse().getContentAsString();
-            Document doc = Jsoup.parse(htmlContent);
-
-            assertThat(doc.select("form[data-test-schedule-event-form]").size())
-                    .as("Schedule Event form should be present")
-                    .isEqualTo(1);
-
-            assertThat(doc.select("input[data-test-your-name-field]").size())
-                    .as("Your name field should be present")
                     .isEqualTo(1);
             return self();
         }
@@ -158,6 +143,70 @@ class IndexPageTest extends
         public ThenIndexPageIsDisplayed the_user_is_redirected_to_index_html() throws Exception {
             result.andExpect(status().isFound())
                     .andExpect(view().name("redirect:/index.html"));
+            return self();
+        }
+
+        public ThenIndexPageIsDisplayed the_woodle_logo_is_displayed() throws Exception {
+            result.andExpect(status().isOk())
+                    .andExpect(view().name("index"));
+
+            String htmlContent = result.andReturn().getResponse().getContentAsString();
+            Document doc = Jsoup.parse(htmlContent);
+
+            assertThat(doc.select("img[data-test-woodle-logo]").size())
+                    .as("Woodle logo should be present")
+                    .isEqualTo(1);
+            return self();
+        }
+
+        public ThenIndexPageIsDisplayed the_woodle_logo_is_displayed_on_schedule_event_page() throws Exception {
+            result.andExpect(status().isOk())
+                    .andExpect(view().name("schedule-event"));
+
+            String htmlContent = result.andReturn().getResponse().getContentAsString();
+            Document doc = Jsoup.parse(htmlContent);
+
+            assertThat(doc.select("img[data-test-woodle-logo]").size())
+                    .as("Woodle logo should be present")
+                    .isEqualTo(1);
+            return self();
+        }
+
+        public ThenIndexPageIsDisplayed the_woodle_logo_is_downloadable() throws Exception {
+            // Test that the logo file is actually downloadable
+            ResultActions logoResult = mockMvc.perform(get("/woodle-logo.jpeg"));
+            logoResult.andExpect(status().isOk());
+
+            String contentType = logoResult.andReturn().getResponse().getContentType();
+            assertThat(contentType)
+                    .as("Logo should be served as JPEG image")
+                    .isEqualTo("image/jpeg");
+            return self();
+        }
+
+        public ThenIndexPageIsDisplayed the_schedule_event_form_with_all_required_fields_is_displayed()
+                throws Exception {
+            result.andExpect(status().isOk())
+                    .andExpect(view().name("schedule-event"));
+
+            String htmlContent = result.andReturn().getResponse().getContentAsString();
+            Document doc = Jsoup.parse(htmlContent);
+
+            assertThat(doc.select("form[data-test-schedule-event-form]").size())
+                    .as("Schedule Event form should be present")
+                    .isEqualTo(1);
+
+            assertThat(doc.select("input[data-test-your-name-field]").size())
+                    .as("Your name field should be present")
+                    .isEqualTo(1);
+
+            assertThat(doc.select("input[data-test-email-field]").size())
+                    .as("Email address field should be present")
+                    .isEqualTo(1);
+
+            assertThat(doc.select("input[data-test-activity-title-field]").size())
+                    .as("Activity title field should be present")
+                    .isEqualTo(1);
             return self();
         }
     }
