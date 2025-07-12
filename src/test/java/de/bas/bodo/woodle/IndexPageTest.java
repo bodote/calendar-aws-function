@@ -207,6 +207,11 @@ class IndexPageTest extends
             assertThat(doc.select("input[data-test-activity-title-field]").size())
                     .as("Activity title field should be present")
                     .isEqualTo(1);
+
+            assertThat(doc.select("textarea[data-test-description-field]").size())
+                    .as("Description multiline field should be present")
+                    .isEqualTo(1);
+
             return self();
         }
     }

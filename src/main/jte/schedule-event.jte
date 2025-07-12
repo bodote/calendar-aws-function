@@ -40,12 +40,16 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input[type="text"], input[type="email"] {
+        input[type="text"], input[type="email"], textarea {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        .form-group {
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -57,13 +61,21 @@
         </header>
         <main>
             <form data-test-schedule-event-form>
-                <div>
+                <div class="form-group">
                     <label for="yourName">Your name:</label>
                     <input type="text" id="yourName" name="yourName" data-test-your-name-field required>
                 </div>
-                <div>
+                <div class="form-group">
                     <label for="emailAddress">Email address:</label>
                     <input type="email" id="emailAddress" name="emailAddress" data-test-email-field required>
+                </div>
+                <div class="form-group">
+                    <label for="activityTitle">Activity title:</label>
+                    <input type="text" id="activityTitle" name="activityTitle" data-test-activity-title-field required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" data-test-description-field rows="4" required></textarea>
                 </div>
             </form>
         </main>

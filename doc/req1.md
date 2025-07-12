@@ -1,5 +1,7 @@
-# Requirement 1: View "woodle" with "hello world" content
+# Requirement 1: 
+View "woodle" with "hello world" content
 
+## acceptance criteria  
 *   add a automatic test that checks if the project contains a view to "woodle" with "hello woodle" as content on path /index.html
 *   implement the view using the JTE template engine 
 *   check if the implementation fulfills the test
