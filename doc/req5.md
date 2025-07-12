@@ -1,17 +1,93 @@
-# requirement 5
-as a user i want to be able to go to the next form page to enter more data for my planed activity: a date and at least 2 input fields for time
-![Schedule Event Form 2](woodle-screenshot-step2.png) 
+# requirement 5a - Form Data Persistence
 
-## acceptance criteria
-1. if the user is still on the first form ![Schedule Event Form 1](schedule-event.png) and clicks on the "Next" button, the 2nd step form appears
-2. the layout of the step 2 form should look similar to ![Schedule Event Form 2](woodle-screenshot-step2.png) 
-3. the user can input a date 
-4. the user can input a time in all the time fields
-5. if the user clicks the "back" button, the previous from ![Schedule Event Form 1](schedule-event.png) appears again including the data he already has entered
-6.  
-## hints:
-* instead of testing for just some strings, better test for existence of a calendar icon called "calendar-icon.png"  and test if it is reachable for the server
-* same for all input fields: test if the input fields exist 
-* use input type "date" so that the browser shows an small calendar icon , same for input type "time" 
-* you need to test this scenario : user inputs data on the first form page (like  his email address) then clicks the "go to step 2" button, then goes back and wants to see the data he already has entered before
+**User Story:** As a user, I want my form data to be automatically saved so that I can return later to modify or continue my event scheduling.
+
+![Schedule Event Form 1](schedule-event.png)
+
+## Implementation Strategy
+- **Architecture:** Stateless backend with S3-compatible storage
+- **Storage:** MinIO (dev/test) → AWS S3 (production)
+- **Data Format:** JSON objects with UUID keys
+- **URL Pattern:** `/schedule-event/{uuid}` for persistence
+
+## Acceptance Criteria
+
+### 1. Form Submission & UUID Generation
+- **WHEN** user fills out the schedule-event form and clicks "Next"
+- **THEN** system generates a UUID (e.g., `123e4567-e89b-12d3-a456-426655440000`)
+- **AND** form data is saved to S3 with UUID as object key
+
+### 2. Data Storage Requirements
+- **WHAT:** Store form data as JSON in S3-compatible storage
+- **WHERE:** Bucket `de.bas.bodo`, server alias `myminio`
+- **KEY:** UUID string (e.g., `123e4567-e89b-12d3-a456-426655440000.json`)
+- **CONTENT:** JSON object with form fields: `{ "name": "...", "email": "...", "activityTitle": "...", "description": "..." }`
+
+### 3. Stateless Backend Requirement
+- **NO** Spring Boot sessions or server-side state
+- **ALL** user data must be stored in S3
+- **EACH** request must be independent
+
+### 4. URL-based Data Retrieval
+- **WHEN** user visits `/schedule-event/{uuid}` (e.g., `/schedule-event/123e4567-e89b-12d3-a456-426655440000`)
+- **THEN** system retrieves data from S3 using the UUID
+- **AND** pre-fills form fields with stored data
+- **IF** UUID not found, show empty form
+
+### 5. Navigation Flow
+- **WHEN** user clicks "Next" on form
+- **THEN** redirect to `/schedule-event-step2/{uuid}`
+- **AND** UUID is preserved in URL for subsequent steps
+
+### 6. Infrastructure Configuration
+- **TESTS:** Use local MinIO instance (started via `./minio-start.sh`)
+- **PRODUCTION:** AWS S3 configured in `application.yml`
+- **BUCKET:** `de.bas.bodo` (must exist)
+
+## Test Scenarios
+1. **New Form:** Visit `/schedule-event` → fill form → click Next → verify UUID generated and data stored
+2. **Data Retrieval:** Visit `/schedule-event/{existing-uuid}` → verify form pre-filled with stored data
+3. **Invalid UUID:** Visit `/schedule-event/{non-existent-uuid}` → verify empty form shown
+4. **S3 Storage:** Verify JSON object stored with correct structure and UUID key
+
+## Technical Requirements
+- **Form Fields:** name, email, activityTitle, description
+- **UUID Format:** Standard UUID v4 format
+- **S3 Client:** AWS SDK for Java
+- **Error Handling:** Graceful fallback if S3 unavailable
+- **Data Validation:** Validate UUID format in URLs
+
+# requirement 5b - Multi-Step Form Navigation
+
+**User Story:** As a user, I want to proceed to a second form page to enter date and time details for my planned activity.
+
+![Schedule Event Form 2](woodle-screenshot-step2.png)
+
+## Acceptance Criteria
+
+### 1. Form Layout
+- **LAYOUT:** Match ![Schedule Event Form 2](woodle-screenshot-step2.png)
+- **ELEMENTS:** Date input, multiple time input fields, navigation buttons
+
+### 2. Input Fields
+- **DATE:** HTML5 `<input type="date">` for date selection
+- **TIME:** HTML5 `<input type="time">` for time fields
+- **ICON:** Calendar icon (`calendar-icon.png`) accessible via server
+
+### 3. Navigation
+- **BACK BUTTON:** Returns to step 1 with previously entered data intact
+- **URL:** `/schedule-event-step2/{uuid}` format
+- **DATA PERSISTENCE:** All form data saved on each step
+
+### 4. Data Continuity Test Scenario
+- **STEP 1:** User enters email on first form
+- **STEP 2:** User clicks "Next" → goes to step 2
+- **STEP 3:** User clicks "Back" → returns to step 1
+- **VERIFY:** Email field still contains previously entered data
+
+## Test Requirements
+- **ICON TEST:** Verify `calendar-icon.png` exists and is accessible
+- **FIELD TEST:** Verify all input fields exist (not just text content)
+- **NAVIGATION TEST:** Test back/forward navigation with data persistence
+- **DATE/TIME TEST:** Verify HTML5 input types work correctly
 

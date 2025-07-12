@@ -51,6 +51,19 @@
         .form-group {
             margin-bottom: 15px;
         }
+        .next-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .next-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -60,7 +73,7 @@
             <h1>Schedule Event</h1>
         </header>
         <main>
-            <form data-test-schedule-event-form>
+            <form data-test-schedule-event-form method="post" action="/schedule-event">
                 <div class="form-group">
                     <label for="yourName">Your name:</label>
                     <input type="text" id="yourName" name="yourName" data-test-your-name-field required>
@@ -76,6 +89,9 @@
                 <div class="form-group">
                     <label for="description">Description:</label>
                     <textarea id="description" name="description" data-test-description-field rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="next-button" data-test-next-button>Next</button>
                 </div>
             </form>
         </main>
