@@ -1,12 +1,12 @@
 @param java.util.Map<String, String> pollData = null
-@param String uuid = null
+@param String uuid
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Event - Woodle</title>
+    <title>Schedule Event - Step 2 - Woodle</title>
     <style>
         body {
             margin: 0;
@@ -43,7 +43,7 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input[type="text"], input[type="email"], textarea {
+        input[type="date"], input[type="time"] {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
@@ -54,6 +54,27 @@
         .form-group {
             margin-bottom: 15px;
         }
+        .time-slots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            background-color: #545b62;
+        }
         .next-button {
             background-color: #007bff;
             color: white;
@@ -62,10 +83,12 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 20px;
         }
         .next-button:hover {
             background-color: #0056b3;
+        }
+        .navigation {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -73,30 +96,32 @@
     <div class="container">
         <header>
             <img src="/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
-            <h1>Schedule Event</h1>
+            <h1>Schedule Event - Step 2</h1>
         </header>
         <main>
-            <form data-test-schedule-event-form method="post" action="/schedule-event">
+            @if(pollData != null)
+                <p>Activity: <strong>${pollData.get("activityTitle")}</strong></p>
+                <p>Organizer: <strong>${pollData.get("name")}</strong></p>
+            @endif
+            
+            <form data-test-schedule-event-step2-form method="post" action="/schedule-event-step2/${uuid}">
                 <div class="form-group">
-                    <label for="yourName">Your name:</label>
-                    <input type="text" id="yourName" name="yourName" data-test-your-name-field 
-                           value="${pollData != null && pollData.get("name") != null ? pollData.get("name") : ""}" required>
+                    <label for="eventDate">Select Date:</label>
+                    <input type="date" id="eventDate" name="eventDate" data-test-date-field required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="emailAddress">Email address:</label>
-                    <input type="email" id="emailAddress" name="emailAddress" data-test-email-field 
-                           value="${pollData != null && pollData.get("email") != null ? pollData.get("email") : ""}" required>
+                    <label>Available Time Slots:</label>
+                    <div class="time-slots">
+                        <input type="time" name="timeSlot1" data-test-time-field>
+                        <input type="time" name="timeSlot2" data-test-time-field>
+                        <input type="time" name="timeSlot3" data-test-time-field>
+                        <input type="time" name="timeSlot4" data-test-time-field>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="activityTitle">Activity title:</label>
-                    <input type="text" id="activityTitle" name="activityTitle" data-test-activity-title-field 
-                           value="${pollData != null && pollData.get("activityTitle") != null ? pollData.get("activityTitle") : ""}" required>
-                </div>
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea id="description" name="description" data-test-description-field rows="4" required>${pollData != null && pollData.get("description") != null ? pollData.get("description") : ""}</textarea>
-                </div>
-                <div class="form-group">
+                
+                <div class="navigation">
+                    <a href="/schedule-event/${uuid}" class="back-button" data-test-back-button>Back</a>
                     <button type="submit" class="next-button" data-test-next-button>Next</button>
                 </div>
             </form>

@@ -67,12 +67,11 @@
 
 ### 1. Form Layout
 - **LAYOUT:** Match ![Schedule Event Form 2](woodle-screenshot-step2.png)
-- **ELEMENTS:** Date input, multiple time input fields, navigation buttons
+- **ELEMENTS:** Date input, at least 2 time input fields, navigation buttons
 
 ### 2. Input Fields
 - **DATE:** HTML5 `<input type="date">` for date selection
 - **TIME:** HTML5 `<input type="time">` for time fields
-- **ICON:** Calendar icon (`calendar-icon.png`) accessible via server
 
 ### 3. Navigation
 - **BACK BUTTON:** Returns to step 1 with previously entered data intact
@@ -86,7 +85,6 @@
 - **VERIFY:** Email field still contains previously entered data
 
 ## Test Requirements
-- **ICON TEST:** Verify `calendar-icon.png` exists and is accessible
 - **FIELD TEST:** Verify all input fields exist (not just text content)
 - **NAVIGATION TEST:** Test back/forward navigation with data persistence
 - **DATE/TIME TEST:** Verify HTML5 input types work correctly

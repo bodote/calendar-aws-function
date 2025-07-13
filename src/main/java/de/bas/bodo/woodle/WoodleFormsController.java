@@ -4,18 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import de.bas.bodo.woodle.service.PollStorageService;
 
 @Controller
-public class IndexController {
+public class WoodleFormsController {
 
     private final PollStorageService pollStorageService;
 
-    public IndexController(PollStorageService pollStorageService) {
+    public WoodleFormsController(PollStorageService pollStorageService) {
         this.pollStorageService = pollStorageService;
     }
 
@@ -31,6 +33,20 @@ public class IndexController {
 
     @GetMapping("/schedule-event")
     public String scheduleEvent() {
+        return "schedule-event";
+    }
+
+    @GetMapping("/schedule-event/{uuid}")
+    public String scheduleEventWithUuid(@PathVariable String uuid, Model model) {
+        // Retrieve existing poll data
+        Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
+
+        // Add data to model for the template
+        if (pollData != null) {
+            model.addAttribute("pollData", pollData);
+        }
+        model.addAttribute("uuid", uuid);
+
         return "schedule-event";
     }
 
@@ -53,5 +69,19 @@ public class IndexController {
 
         // Redirect to step 2 with UUID in URL
         return "redirect:/schedule-event-step2/" + uuid;
+    }
+
+    @GetMapping("/schedule-event-step2/{uuid}")
+    public String scheduleEventStep2(@PathVariable String uuid, Model model) {
+        // Retrieve existing poll data
+        Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
+
+        // Add data to model for the template
+        if (pollData != null) {
+            model.addAttribute("pollData", pollData);
+        }
+        model.addAttribute("uuid", uuid);
+
+        return "schedule-event-step2";
     }
 }

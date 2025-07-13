@@ -30,10 +30,13 @@ import com.tngtech.jgiven.junit5.ScenarioTest;
 import de.bas.bodo.woodle.service.PollStorageService;
 import gg.jte.springframework.boot.autoconfigure.JteAutoConfiguration;
 
+// @WebMvcTest is faster than @SpringBootTest, so keep is
 @WebMvcTest
+// @ImportAutoConfiguration(JteAutoConfiguration.class) is needed for JTE to
+// work in a @WebMvcTest
 @ImportAutoConfiguration(JteAutoConfiguration.class)
-class IndexPageTest extends
-                ScenarioTest<IndexPageTest.GivenIndexPage, IndexPageTest.WhenUserVisitsIndexPage, IndexPageTest.ThenIndexPageIsDisplayed> {
+class WoodleFormsTest extends
+                ScenarioTest<WoodleFormsTest.GivenIndexPage, WoodleFormsTest.WhenUserVisitsIndexPage, WoodleFormsTest.ThenIndexPageIsDisplayed> {
 
         @Autowired
         private MockMvc mockMvc;
@@ -84,6 +87,15 @@ class IndexPageTest extends
                                 .and().the_form_data_is_stored_via_service();
         }
 
+        @Test
+        void shouldDisplayAllRequiredFieldsOnScheduleEventStep2Form() throws Exception {
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_returns_existing_data(pollStorageService);
+                when().the_user_visits_the_schedule_event_step2_page_with_uuid();
+                then().the_schedule_event_step2_form_with_all_required_fields_is_displayed()
+                                .and().the_back_button_is_displayed();
+        }
+
         public static class GivenIndexPage extends Stage<GivenIndexPage> {
                 @ProvidedScenarioState
                 private MockMvc mockMvc;
@@ -105,6 +117,23 @@ class IndexPageTest extends
                         // Mock the service to return a predictable UUID
                         this.mockUuid = "12345678-1234-1234-1234-123456789012";
                         Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
+
+                        return self();
+                }
+
+                public GivenIndexPage the_poll_storage_service_returns_existing_data(
+                                PollStorageService pollStorageService) {
+                        this.pollStorageService = pollStorageService;
+                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
+
+                        // Mock the service to return existing form data
+                        Map<String, String> existingData = new HashMap<>();
+                        existingData.put("name", "John Doe");
+                        existingData.put("email", "john.doe@example.com");
+                        existingData.put("activityTitle", "Team Meeting");
+                        existingData.put("description", "Weekly team sync meeting");
+
+                        Mockito.when(pollStorageService.retrievePollData(mockUuid)).thenReturn(existingData);
 
                         return self();
                 }
@@ -138,6 +167,12 @@ class IndexPageTest extends
                                         .param("emailAddress", "john.doe@example.com")
                                         .param("activityTitle", "Team Meeting")
                                         .param("description", "Weekly team sync meeting"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_visits_the_schedule_event_step2_page_with_uuid()
+                                throws Exception {
+                        result = mockMvc.perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
                         return self();
                 }
 
@@ -295,6 +330,38 @@ class IndexPageTest extends
                         // Verify that storePollData was called exactly once with the expected
                         // parameters
                         verify(pollStorageService, Mockito.times(1)).storePollData(expectedFormData);
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_schedule_event_step2_form_with_all_required_fields_is_displayed()
+                                throws Exception {
+                        result.andExpect(status().isOk())
+                                        .andExpect(view().name("schedule-event-step2"));
+
+                        String htmlContent = result.andReturn().getResponse().getContentAsString();
+                        Document doc = Jsoup.parse(htmlContent);
+
+                        // Test for date input field
+                        assertThat(doc.select("input[type='date'][data-test-date-field]").size())
+                                        .as("Date input field should be present")
+                                        .isEqualTo(1);
+
+                        // Test for time input fields
+                        assertThat(doc.select("input[type='time'][data-test-time-field]").size())
+                                        .as("Time input fields should be present")
+                                        .isGreaterThan(0);
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_back_button_is_displayed() throws Exception {
+                        String htmlContent = result.andReturn().getResponse().getContentAsString();
+                        Document doc = Jsoup.parse(htmlContent);
+
+                        assertThat(doc.select("button[data-test-back-button], a[data-test-back-button]").size())
+                                        .as("Back button should be present")
+                                        .isEqualTo(1);
 
                         return self();
                 }
