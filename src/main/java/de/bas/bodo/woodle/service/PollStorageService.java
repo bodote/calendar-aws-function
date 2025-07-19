@@ -23,4 +23,12 @@ public interface PollStorageService {
      * @return the poll data if found, null otherwise
      */
     Map<String, String> retrievePollData(String uuid);
+
+    /**
+     * Update existing poll data with the same UUID.
+     * 
+     * @param uuid     the existing UUID of the poll data to update
+     * @param pollData the updated poll data
+     */
+    void updatePollData(String uuid, Map<String, String> pollData);
 }

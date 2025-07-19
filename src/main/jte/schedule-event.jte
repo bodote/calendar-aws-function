@@ -76,7 +76,7 @@
             <h1>Schedule Event</h1>
         </header>
         <main>
-            <form data-test-schedule-event-form method="post" action="/schedule-event">
+            <form data-test-schedule-event-form method="post" action="@if(uuid != null)/schedule-event/${uuid}@else/schedule-event@endif">
                 <div class="form-group">
                     <label for="yourName">Your name:</label>
                     <input type="text" id="yourName" name="yourName" data-test-your-name-field 

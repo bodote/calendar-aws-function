@@ -30,4 +30,9 @@ public class InMemoryPollStorageService implements PollStorageService {
     public Map<String, String> retrievePollData(String uuid) {
         return pollDataStorage.get(uuid);
     }
+
+    @Override
+    public void updatePollData(String uuid, Map<String, String> pollData) {
+        pollDataStorage.put(uuid, Map.copyOf(pollData));
+    }
 }

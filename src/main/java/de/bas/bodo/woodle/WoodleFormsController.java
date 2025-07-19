@@ -71,6 +71,36 @@ public class WoodleFormsController {
         return "redirect:/schedule-event-step2/" + uuid;
     }
 
+    @PostMapping("/schedule-event/{uuid}")
+    public String submitScheduleEventWithUuid(
+            @PathVariable String uuid,
+            @RequestParam("yourName") String yourName,
+            @RequestParam("emailAddress") String emailAddress,
+            @RequestParam("activityTitle") String activityTitle,
+            @RequestParam("description") String description) {
+
+        // Retrieve existing poll data
+        Map<String, String> existingData = pollStorageService.retrievePollData(uuid);
+
+        // Create updated form data object, preserving existing data
+        Map<String, String> updatedData = new HashMap<>();
+        if (existingData != null) {
+            updatedData.putAll(existingData);
+        }
+
+        // Update step 1 data
+        updatedData.put("name", yourName);
+        updatedData.put("email", emailAddress);
+        updatedData.put("activityTitle", activityTitle);
+        updatedData.put("description", description);
+
+        // Store updated data
+        pollStorageService.storePollData(updatedData);
+
+        // Redirect to step 2 with UUID in URL
+        return "redirect:/schedule-event-step2/" + uuid;
+    }
+
     @GetMapping("/schedule-event-step2/{uuid}")
     public String scheduleEventStep2(@PathVariable String uuid, Model model) {
         // Retrieve existing poll data
@@ -83,5 +113,53 @@ public class WoodleFormsController {
         model.addAttribute("uuid", uuid);
 
         return "schedule-event-step2";
+    }
+
+    @PostMapping("/schedule-event-step2/{uuid}")
+    public String submitScheduleEventStep2(
+            @PathVariable String uuid,
+            @RequestParam(value = "eventDate", required = false) String eventDate,
+            @RequestParam(value = "timeSlot1", required = false) String timeSlot1,
+            @RequestParam(value = "timeSlot2", required = false) String timeSlot2,
+            @RequestParam(value = "timeSlot3", required = false) String timeSlot3,
+            @RequestParam(value = "timeSlot4", required = false) String timeSlot4,
+            @RequestParam(value = "action", required = false) String action) {
+
+        // Retrieve existing poll data
+        Map<String, String> existingData = pollStorageService.retrievePollData(uuid);
+
+        // Merge existing data with new date/time data
+        Map<String, String> updatedData = new HashMap<>();
+        if (existingData != null) {
+            updatedData.putAll(existingData);
+        }
+
+        // Add date/time data
+        if (eventDate != null && !eventDate.isEmpty()) {
+            updatedData.put("eventDate", eventDate);
+        }
+        if (timeSlot1 != null && !timeSlot1.isEmpty()) {
+            updatedData.put("timeSlot1", timeSlot1);
+        }
+        if (timeSlot2 != null && !timeSlot2.isEmpty()) {
+            updatedData.put("timeSlot2", timeSlot2);
+        }
+        if (timeSlot3 != null && !timeSlot3.isEmpty()) {
+            updatedData.put("timeSlot3", timeSlot3);
+        }
+        if (timeSlot4 != null && !timeSlot4.isEmpty()) {
+            updatedData.put("timeSlot4", timeSlot4);
+        }
+
+        // Store updated data
+        pollStorageService.storePollData(updatedData);
+
+        // If back button was clicked, redirect to step 1
+        if ("back".equals(action)) {
+            return "redirect:/schedule-event/" + uuid;
+        }
+
+        // For now, redirect back to step 2 (in future this might go to step 3)
+        return "redirect:/schedule-event-step2/" + uuid;
     }
 }

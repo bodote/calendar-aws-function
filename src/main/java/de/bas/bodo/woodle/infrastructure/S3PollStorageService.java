@@ -91,4 +91,24 @@ public class S3PollStorageService implements PollStorageService {
             throw new RuntimeException("Failed to retrieve poll data", e);
         }
     }
+
+    @Override
+    public void updatePollData(String uuid, Map<String, String> pollData) {
+        try {
+            String key = POLLS_PREFIX + uuid + JSON_SUFFIX;
+
+            // Convert poll data to JSON
+            String jsonContent = objectMapper.writeValueAsString(pollData);
+
+            // Update in S3 (overwrites existing object with same key)
+            PutObjectRequest putRequest = PutObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(key)
+                    .build();
+
+            s3Client.putObject(putRequest, RequestBody.fromString(jsonContent));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update poll data", e);
+        }
+    }
 }

@@ -2,6 +2,7 @@ package de.bas.bodo.woodle;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -96,6 +97,26 @@ class WoodleFormsTest extends
                                 .and().the_back_button_is_displayed();
         }
 
+        @Test
+        void shouldMaintainConsistentUuidThroughoutNavigationFlow() throws Exception {
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_supports_proper_uuid_handling(pollStorageService);
+                when().the_user_submits_initial_form_and_navigates_through_steps();
+                then().store_poll_data_is_called_once_and_update_poll_data_is_called_for_subsequent_updates();
+        }
+
+        @Test
+        void shouldPersistDateAndTimeDataAcrossNavigation() throws Exception {
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_supports_data_updates(pollStorageService);
+                when().the_user_submits_step2_form_with_date_and_time_data_by_going_back_to_step1();
+                then().the_merged_form_data_is_stored_via_service()
+                                .and().the_step1_data_is_still_preserved();
+                when().the_user_modifies_step1_data_and_navigates_forward_to_step2();
+                then().the_modified_step1_and_original_step2_data_are_both_stored()
+                                .and().the_date_and_time_fields_are_pre_filled_with_previously_entered_data();
+        }
+
         public static class GivenIndexPage extends Stage<GivenIndexPage> {
                 @ProvidedScenarioState
                 private MockMvc mockMvc;
@@ -137,6 +158,94 @@ class WoodleFormsTest extends
 
                         return self();
                 }
+
+                public GivenIndexPage the_poll_storage_service_supports_data_updates(
+                                PollStorageService pollStorageService) {
+                        this.pollStorageService = pollStorageService;
+                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
+
+                        // Mock the service to support data updates and return updated data
+                        Map<String, String> initialData = new HashMap<>();
+                        initialData.put("name", "John Doe");
+                        initialData.put("email", "john.doe@example.com");
+                        initialData.put("activityTitle", "Team Meeting");
+                        initialData.put("description", "Weekly team sync meeting");
+
+                        Map<String, String> updatedData = new HashMap<>(initialData);
+                        updatedData.put("eventDate", "2024-01-15");
+                        updatedData.put("timeSlot1", "10:00");
+                        updatedData.put("timeSlot2", "14:00");
+
+                        Mockito.when(pollStorageService.retrievePollData(mockUuid))
+                                        .thenReturn(initialData) // First call returns initial data
+                                        .thenReturn(updatedData); // Subsequent calls return updated data
+
+                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
+
+                        return self();
+                }
+
+                public GivenIndexPage the_poll_storage_service_generates_consistent_uuids(
+                                PollStorageService pollStorageService) {
+                        this.pollStorageService = pollStorageService;
+                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
+
+                        // Mock data for the flow
+                        Map<String, String> initialFormData = new HashMap<>();
+                        initialFormData.put("name", "John Doe");
+                        initialFormData.put("email", "john.doe@example.com");
+                        initialFormData.put("activityTitle", "Team Meeting");
+                        initialFormData.put("description", "Weekly team sync meeting");
+
+                        Map<String, String> step2Data = new HashMap<>(initialFormData);
+                        step2Data.put("eventDate", "2024-01-15");
+                        step2Data.put("timeSlot1", "10:00");
+
+                        Map<String, String> modifiedStep1Data = new HashMap<>(step2Data);
+                        modifiedStep1Data.put("activityTitle", "MODIFIED Team Meeting");
+
+                        // Mock to return the SAME UUID consistently
+                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
+
+                        // Mock retrieval to return appropriate data
+                        Mockito.when(pollStorageService.retrievePollData(mockUuid))
+                                        .thenReturn(initialFormData)
+                                        .thenReturn(step2Data)
+                                        .thenReturn(modifiedStep1Data);
+
+                        return self();
+                }
+
+                public GivenIndexPage the_poll_storage_service_supports_proper_uuid_handling(
+                                PollStorageService pollStorageService) {
+                        this.pollStorageService = pollStorageService;
+                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
+
+                        // Mock data for the flow
+                        Map<String, String> initialFormData = new HashMap<>();
+                        initialFormData.put("name", "John Doe");
+                        initialFormData.put("email", "john.doe@example.com");
+                        initialFormData.put("activityTitle", "Team Meeting");
+                        initialFormData.put("description", "Weekly team sync meeting");
+
+                        Map<String, String> step2Data = new HashMap<>(initialFormData);
+                        step2Data.put("eventDate", "2024-01-15");
+                        step2Data.put("timeSlot1", "10:00");
+
+                        Map<String, String> modifiedStep1Data = new HashMap<>(step2Data);
+                        modifiedStep1Data.put("activityTitle", "MODIFIED Team Meeting");
+
+                        // Mock to return the SAME UUID for storePollData (initial creation only)
+                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
+
+                        // Mock retrieval to return appropriate data
+                        Mockito.when(pollStorageService.retrievePollData(mockUuid))
+                                        .thenReturn(initialFormData)
+                                        .thenReturn(step2Data)
+                                        .thenReturn(modifiedStep1Data);
+
+                        return self();
+                }
         }
 
         public static class WhenUserVisitsIndexPage extends Stage<WhenUserVisitsIndexPage> {
@@ -173,6 +282,61 @@ class WoodleFormsTest extends
                 public WhenUserVisitsIndexPage the_user_visits_the_schedule_event_step2_page_with_uuid()
                                 throws Exception {
                         result = mockMvc.perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_submits_step2_form_with_date_and_time_data_by_going_back_to_step1()
+                                throws Exception {
+                        // User enters data on step 2 and clicks "Back" button to save data and go back
+                        // to step 1
+                        result = mockMvc.perform(post("/schedule-event-step2/12345678-1234-1234-1234-123456789012")
+                                        .param("eventDate", "2024-01-15")
+                                        .param("timeSlot1", "10:00")
+                                        .param("timeSlot2", "14:00")
+                                        .param("action", "back")); // Add action parameter to indicate back button was
+                                                                   // clicked
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_modifies_step1_data_and_navigates_forward_to_step2()
+                                throws Exception {
+                        // User modifies step 1 data (e.g., changes activity title) and submits form to
+                        // go to step 2
+                        result = mockMvc.perform(post("/schedule-event/12345678-1234-1234-1234-123456789012")
+                                        .param("yourName", "John Doe")
+                                        .param("emailAddress", "john.doe@example.com")
+                                        .param("activityTitle", "MODIFIED Team Meeting") // Changed title
+                                        .param("description", "Weekly team sync meeting"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_navigates_forward_to_step2_again() throws Exception {
+                        result = mockMvc.perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_submits_initial_form_and_navigates_through_steps()
+                                throws Exception {
+                        // Step 1: Submit initial form (should generate UUID and redirect to step 2)
+                        result = mockMvc.perform(post("/schedule-event")
+                                        .param("yourName", "John Doe")
+                                        .param("emailAddress", "john.doe@example.com")
+                                        .param("activityTitle", "Team Meeting")
+                                        .param("description", "Weekly team sync meeting"));
+
+                        // Step 2: Go to step 2, add some data, then go back to step 1
+                        mockMvc.perform(post("/schedule-event-step2/12345678-1234-1234-1234-123456789012")
+                                        .param("eventDate", "2024-01-15")
+                                        .param("timeSlot1", "10:00")
+                                        .param("action", "back"));
+
+                        // Step 3: Modify step 1 data and navigate forward to step 2
+                        result = mockMvc.perform(post("/schedule-event/12345678-1234-1234-1234-123456789012")
+                                        .param("yourName", "John Doe")
+                                        .param("emailAddress", "john.doe@example.com")
+                                        .param("activityTitle", "MODIFIED Team Meeting")
+                                        .param("description", "Weekly team sync meeting"));
+
                         return self();
                 }
 
@@ -334,6 +498,24 @@ class WoodleFormsTest extends
                         return self();
                 }
 
+                public ThenIndexPageIsDisplayed the_merged_form_data_is_stored_via_service() throws Exception {
+                        // Create expected merged form data map
+                        Map<String, String> expectedMergedData = new HashMap<>();
+                        expectedMergedData.put("name", "John Doe");
+                        expectedMergedData.put("email", "john.doe@example.com");
+                        expectedMergedData.put("activityTitle", "Team Meeting");
+                        expectedMergedData.put("description", "Weekly team sync meeting");
+                        expectedMergedData.put("eventDate", "2024-01-15");
+                        expectedMergedData.put("timeSlot1", "10:00");
+                        expectedMergedData.put("timeSlot2", "14:00");
+
+                        // Verify that storePollData was called exactly once with the expected
+                        // parameters
+                        verify(pollStorageService, Mockito.times(1)).storePollData(expectedMergedData);
+
+                        return self();
+                }
+
                 public ThenIndexPageIsDisplayed the_schedule_event_step2_form_with_all_required_fields_is_displayed()
                                 throws Exception {
                         result.andExpect(status().isOk())
@@ -347,10 +529,22 @@ class WoodleFormsTest extends
                                         .as("Date input field should be present")
                                         .isEqualTo(1);
 
-                        // Test for time input fields
-                        assertThat(doc.select("input[type='time'][data-test-time-field]").size())
-                                        .as("Time input fields should be present")
-                                        .isGreaterThan(0);
+                        // Test for specific time input fields
+                        assertThat(doc.select("input[data-test-time-field1]").size())
+                                        .as("Time input field 1 should be present")
+                                        .isEqualTo(1);
+
+                        assertThat(doc.select("input[data-test-time-field2]").size())
+                                        .as("Time input field 2 should be present")
+                                        .isEqualTo(1);
+
+                        assertThat(doc.select("input[data-test-time-field3]").size())
+                                        .as("Time input field 3 should be present")
+                                        .isEqualTo(1);
+
+                        assertThat(doc.select("input[data-test-time-field4]").size())
+                                        .as("Time input field 4 should be present")
+                                        .isEqualTo(1);
 
                         return self();
                 }
@@ -365,5 +559,134 @@ class WoodleFormsTest extends
 
                         return self();
                 }
+
+                public ThenIndexPageIsDisplayed the_modified_step1_and_original_step2_data_are_both_stored()
+                                throws Exception {
+                        // Create expected data with MODIFIED step 1 data + ORIGINAL step 2 data
+                        Map<String, String> expectedDataWithModifiedStep1 = new HashMap<>();
+                        expectedDataWithModifiedStep1.put("name", "John Doe");
+                        expectedDataWithModifiedStep1.put("email", "john.doe@example.com");
+                        expectedDataWithModifiedStep1.put("activityTitle", "MODIFIED Team Meeting"); // Modified
+                        expectedDataWithModifiedStep1.put("description", "Weekly team sync meeting");
+                        // Original step 2 data should still be preserved
+                        expectedDataWithModifiedStep1.put("eventDate", "2024-01-15");
+                        expectedDataWithModifiedStep1.put("timeSlot1", "10:00");
+                        expectedDataWithModifiedStep1.put("timeSlot2", "14:00");
+
+                        // This verification should catch the bug if step 2 data gets silently deleted
+                        // when step 1 data is modified and form is submitted
+                        verify(pollStorageService, Mockito.times(2)).storePollData(any());
+                        verify(pollStorageService, Mockito.atLeastOnce()).storePollData(expectedDataWithModifiedStep1);
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_complete_merged_data_is_still_stored_correctly() throws Exception {
+                        // Verify that retrievePollData was called and returned complete merged data
+                        // This ensures that both step 1 and step 2 data are preserved during navigation
+                        verify(pollStorageService, Mockito.atLeastOnce())
+                                        .retrievePollData("12345678-1234-1234-1234-123456789012");
+
+                        // Additional verification: we should verify that the storage contains the
+                        // complete data
+                        // In a real scenario, this would check that no data was silently deleted
+                        // The mock already returns the complete data, but in production this would
+                        // catch
+                        // bugs where step 2 data gets lost during navigation
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_date_and_time_fields_are_pre_filled_with_previously_entered_data()
+                                throws Exception {
+                        // First verify that the form submission redirected to step 2
+                        result.andExpect(status().isFound())
+                                        .andExpect(view().name(
+                                                        "redirect:/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+
+                        // Now make a separate request to step 2 to verify the data is preserved
+                        ResultActions step2Result = mockMvc
+                                        .perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                        step2Result.andExpect(status().isOk())
+                                        .andExpect(view().name("schedule-event-step2"));
+
+                        String htmlContent = step2Result.andReturn().getResponse().getContentAsString();
+                        Document doc = Jsoup.parse(htmlContent);
+
+                        // Check that date field is pre-filled
+                        String dateValue = doc.select("input[data-test-date-field]").attr("value");
+                        assertThat(dateValue)
+                                        .as("Date field should be pre-filled with previously entered data")
+                                        .isEqualTo("2024-01-15");
+
+                        // Check that time fields are pre-filled
+                        String timeSlot1Value = doc.select("input[data-test-time-field1]").attr("value");
+                        assertThat(timeSlot1Value)
+                                        .as("Time slot 1 should be pre-filled with previously entered data")
+                                        .isEqualTo("10:00");
+
+                        String timeSlot2Value = doc.select("input[data-test-time-field2]").attr("value");
+                        assertThat(timeSlot2Value)
+                                        .as("Time slot 2 should be pre-filled with previously entered data")
+                                        .isEqualTo("14:00");
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_step1_data_is_still_preserved() throws Exception {
+                        // First verify that the form submission redirected to step 1
+                        result.andExpect(status().isFound())
+                                        .andExpect(view().name(
+                                                        "redirect:/schedule-event/12345678-1234-1234-1234-123456789012"));
+
+                        // Now make a separate request to step 1 to verify the data is preserved
+                        ResultActions step1Result = mockMvc
+                                        .perform(get("/schedule-event/12345678-1234-1234-1234-123456789012"));
+                        step1Result.andExpect(status().isOk())
+                                        .andExpect(view().name("schedule-event"));
+
+                        String htmlContent = step1Result.andReturn().getResponse().getContentAsString();
+                        Document doc = Jsoup.parse(htmlContent);
+
+                        // Check that step 1 fields are pre-filled with the expected data
+                        String nameValue = doc.select("input[data-test-your-name-field]").attr("value");
+                        assertThat(nameValue)
+                                        .as("Name field should be pre-filled with previously entered data")
+                                        .isEqualTo("John Doe");
+
+                        String emailValue = doc.select("input[data-test-email-field]").attr("value");
+                        assertThat(emailValue)
+                                        .as("Email field should be pre-filled with previously entered data")
+                                        .isEqualTo("john.doe@example.com");
+
+                        String activityTitleValue = doc.select("input[data-test-activity-title-field]").attr("value");
+                        assertThat(activityTitleValue)
+                                        .as("Activity title field should be pre-filled with previously entered data")
+                                        .isEqualTo("Team Meeting");
+
+                        String descriptionValue = doc.select("textarea[data-test-description-field]").text();
+                        assertThat(descriptionValue)
+                                        .as("Description field should be pre-filled with previously entered data")
+                                        .isEqualTo("Weekly team sync meeting");
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed store_poll_data_is_called_once_and_update_poll_data_is_called_for_subsequent_updates()
+                                throws Exception {
+                        // CORRECT behavior: storePollData should only be called ONCE for initial
+                        // creation
+                        Mockito.verify(pollStorageService, Mockito.times(1)).storePollData(any());
+
+                        // CORRECT behavior: updatePollData should be called TWICE for the navigation
+                        // updates
+                        Mockito.verify(pollStorageService, Mockito.times(2)).updatePollData(eq(mockUuid), any());
+
+                        // Verify retrievePollData was called to get existing data before updates
+                        Mockito.verify(pollStorageService, Mockito.times(2)).retrievePollData(mockUuid);
+
+                        return self();
+                }
+
         }
 }

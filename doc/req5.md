@@ -32,12 +32,13 @@
 - **WHEN** user visits `/schedule-event/{uuid}` (e.g., `/schedule-event/123e4567-e89b-12d3-a456-426655440000`)
 - **THEN** system retrieves data from S3 using the UUID
 - **AND** pre-fills form fields with stored data
-- **IF** UUID not found, show empty form
+- **IF** UUID not found, show empty form, generate a new UUID
 
 ### 5. Navigation Flow
 - **WHEN** user clicks "Next" on form
 - **THEN** redirect to `/schedule-event-step2/{uuid}`
 - **AND** UUID is preserved in URL for subsequent steps
+- **IF** a UUID given in the URL is not found, redirect to `/schedule-event/` and show an empty form
 
 ### 6. Infrastructure Configuration
 - **TESTS:** Use local MinIO instance (started via `./minio-start.sh`)
@@ -77,11 +78,15 @@
 - **BACK BUTTON:** Returns to step 1 with previously entered data intact
 - **URL:** `/schedule-event-step2/{uuid}` format
 - **DATA PERSISTENCE:** All form data saved on each step
+- **IF** a UUID given in the URL is not found, always redirect to `/schedule-event/` but without the non-existing UUID and show an empty form, also show a warning text on `/schedule-event/` that the UUID given was not found and a new UUID will be generated once the user fills the field and clicks "next" 
+
 
 ### 4. Data Continuity Test Scenario
 - **STEP 1:** User enters email on first form
 - **STEP 2:** User clicks "Next" → goes to step 2
-- **STEP 3:** User clicks "Back" → returns to step 1
+- **STEP 3:** User enters a date a time
+- **STEP 4:** User clicks "Back" → returns to step 1
+- **STEP 5:** User clicks "Next" again → all date and or time data previously entered are still shown on the step 2 page 
 - **VERIFY:** Email field still contains previously entered data
 
 ## Test Requirements

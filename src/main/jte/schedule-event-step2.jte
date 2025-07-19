@@ -107,21 +107,26 @@
             <form data-test-schedule-event-step2-form method="post" action="/schedule-event-step2/${uuid}">
                 <div class="form-group">
                     <label for="eventDate">Select Date:</label>
-                    <input type="date" id="eventDate" name="eventDate" data-test-date-field required>
+                    <input type="date" id="eventDate" name="eventDate" data-test-date-field 
+                           value="${pollData != null && pollData.get("eventDate") != null ? pollData.get("eventDate") : ""}" required>
                 </div>
                 
                 <div class="form-group">
                     <label>Available Time Slots:</label>
                     <div class="time-slots">
-                        <input type="time" name="timeSlot1" data-test-time-field>
-                        <input type="time" name="timeSlot2" data-test-time-field>
-                        <input type="time" name="timeSlot3" data-test-time-field>
-                        <input type="time" name="timeSlot4" data-test-time-field>
+                        <input type="time" name="timeSlot1" data-test-time-field1
+                               value="${pollData != null && pollData.get("timeSlot1") != null ? pollData.get("timeSlot1") : ""}">
+                        <input type="time" name="timeSlot2" data-test-time-field2
+                               value="${pollData != null && pollData.get("timeSlot2") != null ? pollData.get("timeSlot2") : ""}">
+                        <input type="time" name="timeSlot3" data-test-time-field3
+                               value="${pollData != null && pollData.get("timeSlot3") != null ? pollData.get("timeSlot3") : ""}">
+                        <input type="time" name="timeSlot4" data-test-time-field4
+                               value="${pollData != null && pollData.get("timeSlot4") != null ? pollData.get("timeSlot4") : ""}">
                     </div>
                 </div>
                 
                 <div class="navigation">
-                    <a href="/schedule-event/${uuid}" class="back-button" data-test-back-button>Back</a>
+                    <button type="submit" name="action" value="back" class="back-button" data-test-back-button>Back</button>
                     <button type="submit" class="next-button" data-test-next-button>Next</button>
                 </div>
             </form>
