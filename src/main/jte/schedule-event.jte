@@ -1,5 +1,6 @@
 @param java.util.Map<String, String> pollData = null
 @param String uuid = null
+@param String warningMessage = null
 
 <!DOCTYPE html>
 <html lang="en">
@@ -33,6 +34,15 @@
         header img {
             height: 50px;
             width: auto;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
         }
         form {
             text-align: left;
@@ -76,6 +86,11 @@
             <h1>Schedule Event</h1>
         </header>
         <main>
+            @if(warningMessage != null)
+            <div class="warning">
+                ${warningMessage} and a new UUID will be generated once the user fills the field and clicks "next"
+            </div>
+            @endif
             <form data-test-schedule-event-form method="post" action="@if(uuid != null)/schedule-event/${uuid}@else/schedule-event@endif">
                 <div class="form-group">
                     <label for="yourName">Your name:</label>

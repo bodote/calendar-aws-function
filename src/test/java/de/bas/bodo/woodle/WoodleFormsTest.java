@@ -752,10 +752,10 @@ class WoodleFormsTest extends
                 public ThenIndexPageIsDisplayed the_user_is_redirected_to_schedule_event_without_uuid()
                                 throws Exception {
                         result.andExpect(status().isFound())
-                                        .andExpect(view().name("redirect:/schedule-event"));
+                                        .andExpect(view().name("redirect:/schedule-event?uuidNotFound=true"));
 
                         // Follow the redirect to test the content
-                        result = mockMvc.perform(get("/schedule-event"));
+                        result = mockMvc.perform(get("/schedule-event?uuidNotFound=true"));
 
                         return self();
                 }

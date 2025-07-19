@@ -32,7 +32,11 @@ public class WoodleFormsController {
     }
 
     @GetMapping("/schedule-event")
-    public String scheduleEvent() {
+    public String scheduleEvent(@RequestParam(value = "uuidNotFound", required = false) String uuidNotFound,
+            Model model) {
+        if ("true".equals(uuidNotFound)) {
+            model.addAttribute("warningMessage", "UUID not found");
+        }
         return "schedule-event";
     }
 
@@ -41,10 +45,13 @@ public class WoodleFormsController {
         // Retrieve existing poll data
         Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
 
-        // Add data to model for the template
-        if (pollData != null) {
-            model.addAttribute("pollData", pollData);
+        // If UUID not found, redirect to schedule-event with warning
+        if (pollData == null) {
+            return "redirect:/schedule-event?uuidNotFound=true";
         }
+
+        // Add data to model for the template
+        model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
 
         return "schedule-event";
@@ -101,15 +108,23 @@ public class WoodleFormsController {
         return "redirect:/schedule-event-step2/" + uuid;
     }
 
+    @GetMapping("/schedule-event-step2/")
+    public String scheduleEventStep2WithoutUuid() {
+        return "redirect:/schedule-event?uuidNotFound=true";
+    }
+
     @GetMapping("/schedule-event-step2/{uuid}")
     public String scheduleEventStep2(@PathVariable String uuid, Model model) {
         // Retrieve existing poll data
         Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
 
-        // Add data to model for the template
-        if (pollData != null) {
-            model.addAttribute("pollData", pollData);
+        // If UUID not found, redirect to schedule-event with warning
+        if (pollData == null) {
+            return "redirect:/schedule-event?uuidNotFound=true";
         }
+
+        // Add data to model for the template
+        model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
 
         return "schedule-event-step2";
