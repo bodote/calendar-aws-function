@@ -82,48 +82,59 @@ class WoodleFormsTest extends
 
         @Test
         void shouldGenerateUuidAndStoreDataWhenFormIsSubmitted() throws Exception {
+                final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
+
                 given().the_application_is_running_with_mock_mvc(mockMvc)
-                                .and().the_poll_storage_service_is_mocked(pollStorageService);
+                                .and().the_poll_storage_service_is_mocked(pollStorageService, TEST_UUID);
                 when().the_user_submits_the_schedule_event_form_with_data();
                 then().the_form_submission_returns_redirect_response()
-                                .and().a_uuid_is_generated_for_the_form_data()
+                                .and().a_uuid_is_generated_for_the_form_data(TEST_UUID)
                                 .and().the_form_data_is_stored_via_service();
         }
 
         @Test
         void shouldDisplayAllRequiredFieldsOnScheduleEventStep2Form() throws Exception {
+                final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
+
                 given().the_application_is_running_with_mock_mvc(mockMvc)
-                                .and().the_poll_storage_service_returns_existing_data(pollStorageService);
-                when().the_user_visits_the_schedule_event_step2_page_with_uuid();
+                                .and().the_poll_storage_service_returns_existing_data(pollStorageService, TEST_UUID);
+                when().the_user_visits_the_schedule_event_step2_page_with_uuid(TEST_UUID);
                 then().the_schedule_event_step2_form_with_all_required_fields_is_displayed()
                                 .and().the_back_button_is_displayed();
         }
 
         @Test
         void shouldMaintainConsistentUuidThroughoutNavigationFlow() throws Exception {
+                final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
+
                 given().the_application_is_running_with_mock_mvc(mockMvc)
-                                .and().the_poll_storage_service_supports_proper_uuid_handling(pollStorageService);
-                when().the_user_submits_initial_form_and_navigates_through_steps();
-                then().store_poll_data_is_called_once_and_update_poll_data_is_called_for_subsequent_updates();
+                                .and()
+                                .the_poll_storage_service_supports_proper_uuid_handling(pollStorageService, TEST_UUID);
+                when().the_user_submits_initial_form_and_navigates_through_steps(TEST_UUID);
+                then().store_poll_data_is_called_once_and_update_poll_data_is_called_for_subsequent_updates(TEST_UUID);
         }
 
         @Test
         void shouldPersistDateAndTimeDataAcrossNavigation() throws Exception {
+                final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
+
                 given().the_application_is_running_with_mock_mvc(mockMvc)
-                                .and().the_poll_storage_service_supports_data_updates(pollStorageService);
-                when().the_user_submits_step2_form_with_date_and_time_data_by_going_back_to_step1();
-                then().the_merged_form_data_is_stored_via_service()
-                                .and().the_step1_data_is_still_preserved();
-                when().the_user_modifies_step1_data_and_navigates_forward_to_step2();
-                then().the_modified_step1_and_original_step2_data_are_both_stored()
-                                .and().the_date_and_time_fields_are_pre_filled_with_previously_entered_data();
+                                .and().the_poll_storage_service_supports_data_updates(pollStorageService, TEST_UUID);
+                when().the_user_submits_step2_form_with_date_and_time_data_by_going_back_to_step1(TEST_UUID);
+                then().the_merged_form_data_is_stored_via_service(TEST_UUID)
+                                .and().the_step1_data_is_still_preserved(TEST_UUID);
+                when().the_user_modifies_step1_data_and_navigates_forward_to_step2(TEST_UUID);
+                then().the_modified_step1_and_original_step2_data_are_both_stored(TEST_UUID)
+                                .and().the_date_and_time_fields_are_pre_filled_with_previously_entered_data(TEST_UUID);
         }
 
         @Test
         void shouldRedirectToScheduleEventWhenUuidNotFoundInStep1() throws Exception {
+                final String NON_EXISTENT_UUID = "99999999-9999-9999-9999-999999999999";
+
                 given().the_application_is_running_with_mock_mvc(mockMvc)
                                 .and().the_poll_storage_service_returns_null_for_non_existent_uuid(pollStorageService);
-                when().the_user_visits_schedule_event_with_non_existent_uuid();
+                when().the_user_visits_schedule_event_with_non_existent_uuid(NON_EXISTENT_UUID);
                 then().the_user_is_redirected_to_schedule_event_without_uuid()
                                 .and().the_warning_message_about_uuid_not_found_is_displayed()
                                 .and().the_empty_form_is_displayed();
@@ -131,9 +142,11 @@ class WoodleFormsTest extends
 
         @Test
         void shouldRedirectToScheduleEventWhenUuidNotFoundInStep2() throws Exception {
+                final String NON_EXISTENT_UUID = "99999999-9999-9999-9999-999999999999";
+
                 given().the_application_is_running_with_mock_mvc(mockMvc)
                                 .and().the_poll_storage_service_returns_null_for_non_existent_uuid(pollStorageService);
-                when().the_user_visits_schedule_event_step2_with_non_existent_uuid();
+                when().the_user_visits_schedule_event_step2_with_non_existent_uuid(NON_EXISTENT_UUID);
                 then().the_user_is_redirected_to_schedule_event_without_uuid()
                                 .and().the_warning_message_about_uuid_not_found_is_displayed()
                                 .and().the_empty_form_is_displayed();
@@ -155,28 +168,21 @@ class WoodleFormsTest extends
                 @ProvidedScenarioState
                 private PollStorageService pollStorageService;
 
-                @ProvidedScenarioState
-                private String mockUuid;
-
                 public GivenIndexPage the_application_is_running_with_mock_mvc(MockMvc mockMvc) {
                         this.mockMvc = mockMvc;
                         return self();
                 }
 
-                public GivenIndexPage the_poll_storage_service_is_mocked(PollStorageService pollStorageService) {
+                public GivenIndexPage the_poll_storage_service_is_mocked(PollStorageService pollStorageService,
+                                String uuid) {
                         this.pollStorageService = pollStorageService;
-
-                        // Mock the service to return a predictable UUID
-                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
-                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
-
+                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(uuid);
                         return self();
                 }
 
                 public GivenIndexPage the_poll_storage_service_returns_existing_data(
-                                PollStorageService pollStorageService) {
+                                PollStorageService pollStorageService, String uuid) {
                         this.pollStorageService = pollStorageService;
-                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
 
                         // Mock the service to return existing form data
                         Map<String, String> existingData = new HashMap<>();
@@ -185,15 +191,14 @@ class WoodleFormsTest extends
                         existingData.put("activityTitle", "Team Meeting");
                         existingData.put("description", "Weekly team sync meeting");
 
-                        Mockito.when(pollStorageService.retrievePollData(mockUuid)).thenReturn(existingData);
+                        Mockito.when(pollStorageService.retrievePollData(uuid)).thenReturn(existingData);
 
                         return self();
                 }
 
                 public GivenIndexPage the_poll_storage_service_supports_data_updates(
-                                PollStorageService pollStorageService) {
+                                PollStorageService pollStorageService, String uuid) {
                         this.pollStorageService = pollStorageService;
-                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
 
                         // Mock the service to support data updates and return updated data
                         Map<String, String> initialData = new HashMap<>();
@@ -207,19 +212,18 @@ class WoodleFormsTest extends
                         updatedData.put("timeSlot1", "10:00");
                         updatedData.put("timeSlot2", "14:00");
 
-                        Mockito.when(pollStorageService.retrievePollData(mockUuid))
+                        Mockito.when(pollStorageService.retrievePollData(uuid))
                                         .thenReturn(initialData) // First call returns initial data
                                         .thenReturn(updatedData); // Subsequent calls return updated data
 
-                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
+                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(uuid);
 
                         return self();
                 }
 
                 public GivenIndexPage the_poll_storage_service_generates_consistent_uuids(
-                                PollStorageService pollStorageService) {
+                                PollStorageService pollStorageService, String uuid) {
                         this.pollStorageService = pollStorageService;
-                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
 
                         // Mock data for the flow
                         Map<String, String> initialFormData = new HashMap<>();
@@ -236,10 +240,10 @@ class WoodleFormsTest extends
                         modifiedStep1Data.put("activityTitle", "MODIFIED Team Meeting");
 
                         // Mock to return the SAME UUID consistently
-                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
+                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(uuid);
 
                         // Mock retrieval to return appropriate data
-                        Mockito.when(pollStorageService.retrievePollData(mockUuid))
+                        Mockito.when(pollStorageService.retrievePollData(uuid))
                                         .thenReturn(initialFormData)
                                         .thenReturn(step2Data)
                                         .thenReturn(modifiedStep1Data);
@@ -248,9 +252,8 @@ class WoodleFormsTest extends
                 }
 
                 public GivenIndexPage the_poll_storage_service_supports_proper_uuid_handling(
-                                PollStorageService pollStorageService) {
+                                PollStorageService pollStorageService, String uuid) {
                         this.pollStorageService = pollStorageService;
-                        this.mockUuid = "12345678-1234-1234-1234-123456789012";
 
                         // Mock data for the flow
                         Map<String, String> initialFormData = new HashMap<>();
@@ -267,10 +270,10 @@ class WoodleFormsTest extends
                         modifiedStep1Data.put("activityTitle", "MODIFIED Team Meeting");
 
                         // Mock to return the SAME UUID for storePollData (initial creation only)
-                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(mockUuid);
+                        Mockito.when(pollStorageService.storePollData(any())).thenReturn(uuid);
 
                         // Mock retrieval to return appropriate data
-                        Mockito.when(pollStorageService.retrievePollData(mockUuid))
+                        Mockito.when(pollStorageService.retrievePollData(uuid))
                                         .thenReturn(initialFormData)
                                         .thenReturn(step2Data)
                                         .thenReturn(modifiedStep1Data);
@@ -281,7 +284,6 @@ class WoodleFormsTest extends
                 public GivenIndexPage the_poll_storage_service_returns_null_for_non_existent_uuid(
                                 PollStorageService pollStorageService) {
                         this.pollStorageService = pollStorageService;
-                        this.mockUuid = null; // Simulate no data found
                         Mockito.when(pollStorageService.retrievePollData(any())).thenReturn(null);
                         return self();
                 }
@@ -318,17 +320,18 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_visits_the_schedule_event_step2_page_with_uuid()
+                public WhenUserVisitsIndexPage the_user_visits_the_schedule_event_step2_page_with_uuid(String uuid)
                                 throws Exception {
-                        result = mockMvc.perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                        result = mockMvc.perform(get("/schedule-event-step2/" + uuid));
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_submits_step2_form_with_date_and_time_data_by_going_back_to_step1()
+                public WhenUserVisitsIndexPage the_user_submits_step2_form_with_date_and_time_data_by_going_back_to_step1(
+                                String uuid)
                                 throws Exception {
                         // User enters data on step 2 and clicks "Back" button to save data and go back
                         // to step 1
-                        result = mockMvc.perform(post("/schedule-event-step2/12345678-1234-1234-1234-123456789012")
+                        result = mockMvc.perform(post("/schedule-event-step2/" + uuid)
                                         .param("eventDate", "2024-01-15")
                                         .param("timeSlot1", "10:00")
                                         .param("timeSlot2", "14:00")
@@ -337,11 +340,11 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_modifies_step1_data_and_navigates_forward_to_step2()
+                public WhenUserVisitsIndexPage the_user_modifies_step1_data_and_navigates_forward_to_step2(String uuid)
                                 throws Exception {
                         // User modifies step 1 data (e.g., changes activity title) and submits form to
                         // go to step 2
-                        result = mockMvc.perform(post("/schedule-event/12345678-1234-1234-1234-123456789012")
+                        result = mockMvc.perform(post("/schedule-event/" + uuid)
                                         .param("yourName", "John Doe")
                                         .param("emailAddress", "john.doe@example.com")
                                         .param("activityTitle", "MODIFIED Team Meeting") // Changed title
@@ -349,12 +352,12 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_navigates_forward_to_step2_again() throws Exception {
-                        result = mockMvc.perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                public WhenUserVisitsIndexPage the_user_navigates_forward_to_step2_again(String uuid) throws Exception {
+                        result = mockMvc.perform(get("/schedule-event-step2/" + uuid));
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_submits_initial_form_and_navigates_through_steps()
+                public WhenUserVisitsIndexPage the_user_submits_initial_form_and_navigates_through_steps(String uuid)
                                 throws Exception {
                         // Step 1: Submit initial form (should generate UUID and redirect to step 2)
                         result = mockMvc.perform(post("/schedule-event")
@@ -364,13 +367,13 @@ class WoodleFormsTest extends
                                         .param("description", "Weekly team sync meeting"));
 
                         // Step 2: Go to step 2, add some data, then go back to step 1
-                        mockMvc.perform(post("/schedule-event-step2/12345678-1234-1234-1234-123456789012")
+                        mockMvc.perform(post("/schedule-event-step2/" + uuid)
                                         .param("eventDate", "2024-01-15")
                                         .param("timeSlot1", "10:00")
                                         .param("action", "back"));
 
                         // Step 3: Modify step 1 data and navigate forward to step 2
-                        result = mockMvc.perform(post("/schedule-event/12345678-1234-1234-1234-123456789012")
+                        result = mockMvc.perform(post("/schedule-event/" + uuid)
                                         .param("yourName", "John Doe")
                                         .param("emailAddress", "john.doe@example.com")
                                         .param("activityTitle", "MODIFIED Team Meeting")
@@ -379,15 +382,15 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_visits_schedule_event_with_non_existent_uuid()
+                public WhenUserVisitsIndexPage the_user_visits_schedule_event_with_non_existent_uuid(String uuid)
                                 throws Exception {
-                        result = mockMvc.perform(get("/schedule-event/12345678-1234-1234-1234-123456789012"));
+                        result = mockMvc.perform(get("/schedule-event/" + uuid));
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_visits_schedule_event_step2_with_non_existent_uuid()
+                public WhenUserVisitsIndexPage the_user_visits_schedule_event_step2_with_non_existent_uuid(String uuid)
                                 throws Exception {
-                        result = mockMvc.perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                        result = mockMvc.perform(get("/schedule-event-step2/" + uuid));
                         return self();
                 }
 
@@ -407,9 +410,6 @@ class WoodleFormsTest extends
 
                 @ExpectedScenarioState
                 private PollStorageService pollStorageService;
-
-                @ExpectedScenarioState
-                private String mockUuid;
 
                 public ThenIndexPageIsDisplayed the_index_page_is_displayed() throws Exception {
                         result.andExpect(status().isOk())
@@ -530,12 +530,13 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed a_uuid_is_generated_for_the_form_data() throws Exception {
-                        // Verify that the redirect URL contains the mocked UUID
+                public ThenIndexPageIsDisplayed a_uuid_is_generated_for_the_form_data(String expectedUuid)
+                                throws Exception {
+                        // Verify that the redirect URL contains the expected UUID
                         String redirectUrl = result.andReturn().getResponse().getRedirectedUrl();
                         assertThat(redirectUrl)
-                                        .as("Redirect URL should contain the mocked UUID")
-                                        .isEqualTo("/schedule-event-step2/" + mockUuid);
+                                        .as("Redirect URL should contain the expected UUID")
+                                        .isEqualTo("/schedule-event-step2/" + expectedUuid);
                         return self();
                 }
 
@@ -554,7 +555,8 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_merged_form_data_is_stored_via_service() throws Exception {
+                public ThenIndexPageIsDisplayed the_merged_form_data_is_stored_via_service(String uuid)
+                                throws Exception {
                         // Create expected merged form data map
                         Map<String, String> expectedMergedData = new HashMap<>();
                         expectedMergedData.put("name", "John Doe");
@@ -569,7 +571,7 @@ class WoodleFormsTest extends
                         // data
                         // (this is the correct behavior after the UUID consistency fix)
                         verify(pollStorageService, Mockito.times(1))
-                                        .updatePollData("12345678-1234-1234-1234-123456789012", expectedMergedData);
+                                        .updatePollData(uuid, expectedMergedData);
 
                         return self();
                 }
@@ -618,7 +620,7 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_modified_step1_and_original_step2_data_are_both_stored()
+                public ThenIndexPageIsDisplayed the_modified_step1_and_original_step2_data_are_both_stored(String uuid)
                                 throws Exception {
                         // Create expected data with MODIFIED step 1 data + ORIGINAL step 2 data
                         Map<String, String> expectedDataWithModifiedStep1 = new HashMap<>();
@@ -635,18 +637,19 @@ class WoodleFormsTest extends
                         // when step 1 data is modified and form is submitted
                         // After the UUID consistency fix, we expect updatePollData to be called instead
                         verify(pollStorageService, Mockito.times(2))
-                                        .updatePollData(eq("12345678-1234-1234-1234-123456789012"), any());
+                                        .updatePollData(eq(uuid), any());
                         verify(pollStorageService, Mockito.atLeastOnce()).updatePollData(
-                                        "12345678-1234-1234-1234-123456789012", expectedDataWithModifiedStep1);
+                                        uuid, expectedDataWithModifiedStep1);
 
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_complete_merged_data_is_still_stored_correctly() throws Exception {
+                public ThenIndexPageIsDisplayed the_complete_merged_data_is_still_stored_correctly(String uuid)
+                                throws Exception {
                         // Verify that retrievePollData was called and returned complete merged data
                         // This ensures that both step 1 and step 2 data are preserved during navigation
                         verify(pollStorageService, Mockito.atLeastOnce())
-                                        .retrievePollData("12345678-1234-1234-1234-123456789012");
+                                        .retrievePollData(uuid);
 
                         // Additional verification: we should verify that the storage contains the
                         // complete data
@@ -658,16 +661,17 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_date_and_time_fields_are_pre_filled_with_previously_entered_data()
+                public ThenIndexPageIsDisplayed the_date_and_time_fields_are_pre_filled_with_previously_entered_data(
+                                String uuid)
                                 throws Exception {
                         // First verify that the form submission redirected to step 2
                         result.andExpect(status().isFound())
                                         .andExpect(view().name(
-                                                        "redirect:/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                                                        "redirect:/schedule-event-step2/" + uuid));
 
                         // Now make a separate request to step 2 to verify the data is preserved
                         ResultActions step2Result = mockMvc
-                                        .perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                                        .perform(get("/schedule-event-step2/" + uuid));
                         step2Result.andExpect(status().isOk())
                                         .andExpect(view().name("schedule-event-step2"));
 
@@ -694,15 +698,15 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_step1_data_is_still_preserved() throws Exception {
+                public ThenIndexPageIsDisplayed the_step1_data_is_still_preserved(String uuid) throws Exception {
                         // First verify that the form submission redirected to step 1
                         result.andExpect(status().isFound())
                                         .andExpect(view().name(
-                                                        "redirect:/schedule-event/12345678-1234-1234-1234-123456789012"));
+                                                        "redirect:/schedule-event/" + uuid));
 
                         // Now make a separate request to step 1 to verify the data is preserved
                         ResultActions step1Result = mockMvc
-                                        .perform(get("/schedule-event/12345678-1234-1234-1234-123456789012"));
+                                        .perform(get("/schedule-event/" + uuid));
                         step1Result.andExpect(status().isOk())
                                         .andExpect(view().name("schedule-event"));
 
@@ -733,7 +737,8 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed store_poll_data_is_called_once_and_update_poll_data_is_called_for_subsequent_updates()
+                public ThenIndexPageIsDisplayed store_poll_data_is_called_once_and_update_poll_data_is_called_for_subsequent_updates(
+                                String uuid)
                                 throws Exception {
                         // CORRECT behavior: storePollData should only be called ONCE for initial
                         // creation
@@ -741,10 +746,10 @@ class WoodleFormsTest extends
 
                         // CORRECT behavior: updatePollData should be called TWICE for the navigation
                         // updates
-                        Mockito.verify(pollStorageService, Mockito.times(2)).updatePollData(eq(mockUuid), any());
+                        Mockito.verify(pollStorageService, Mockito.times(2)).updatePollData(eq(uuid), any());
 
                         // Verify retrievePollData was called to get existing data before updates
-                        Mockito.verify(pollStorageService, Mockito.times(2)).retrievePollData(mockUuid);
+                        Mockito.verify(pollStorageService, Mockito.times(2)).retrievePollData(uuid);
 
                         return self();
                 }

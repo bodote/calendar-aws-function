@@ -34,3 +34,5 @@ build/
 
 ### JTE ###
 /jte-classes/
+
+doc/tmp_next_command.md
