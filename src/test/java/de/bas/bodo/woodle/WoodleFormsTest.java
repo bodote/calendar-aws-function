@@ -1,11 +1,13 @@
 package de.bas.bodo.woodle;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -115,6 +117,35 @@ class WoodleFormsTest extends
                 when().the_user_modifies_step1_data_and_navigates_forward_to_step2();
                 then().the_modified_step1_and_original_step2_data_are_both_stored()
                                 .and().the_date_and_time_fields_are_pre_filled_with_previously_entered_data();
+        }
+
+        @Test
+        void shouldRedirectToScheduleEventWhenUuidNotFoundInStep1() throws Exception {
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_returns_null_for_non_existent_uuid(pollStorageService);
+                when().the_user_visits_schedule_event_with_non_existent_uuid();
+                then().the_user_is_redirected_to_schedule_event_without_uuid()
+                                .and().the_warning_message_about_uuid_not_found_is_displayed()
+                                .and().the_empty_form_is_displayed();
+        }
+
+        @Test
+        void shouldRedirectToScheduleEventWhenUuidNotFoundInStep2() throws Exception {
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_returns_null_for_non_existent_uuid(pollStorageService);
+                when().the_user_visits_schedule_event_step2_with_non_existent_uuid();
+                then().the_user_is_redirected_to_schedule_event_without_uuid()
+                                .and().the_warning_message_about_uuid_not_found_is_displayed()
+                                .and().the_empty_form_is_displayed();
+        }
+
+        @Test
+        void shouldRedirectToScheduleEventWhenNoUuidInStep2Url() throws Exception {
+                given().the_application_is_running_with_mock_mvc(mockMvc);
+                when().the_user_visits_schedule_event_step2_without_uuid();
+                then().the_user_is_redirected_to_schedule_event_without_uuid()
+                                .and().the_warning_message_about_uuid_not_found_is_displayed()
+                                .and().the_empty_form_is_displayed();
         }
 
         public static class GivenIndexPage extends Stage<GivenIndexPage> {
@@ -246,6 +277,14 @@ class WoodleFormsTest extends
 
                         return self();
                 }
+
+                public GivenIndexPage the_poll_storage_service_returns_null_for_non_existent_uuid(
+                                PollStorageService pollStorageService) {
+                        this.pollStorageService = pollStorageService;
+                        this.mockUuid = null; // Simulate no data found
+                        Mockito.when(pollStorageService.retrievePollData(any())).thenReturn(null);
+                        return self();
+                }
         }
 
         public static class WhenUserVisitsIndexPage extends Stage<WhenUserVisitsIndexPage> {
@@ -340,6 +379,23 @@ class WoodleFormsTest extends
                         return self();
                 }
 
+                public WhenUserVisitsIndexPage the_user_visits_schedule_event_with_non_existent_uuid()
+                                throws Exception {
+                        result = mockMvc.perform(get("/schedule-event/12345678-1234-1234-1234-123456789012"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_visits_schedule_event_step2_with_non_existent_uuid()
+                                throws Exception {
+                        result = mockMvc.perform(get("/schedule-event-step2/12345678-1234-1234-1234-123456789012"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_visits_schedule_event_step2_without_uuid()
+                                throws Exception {
+                        result = mockMvc.perform(get("/schedule-event-step2/"));
+                        return self();
+                }
         }
 
         public static class ThenIndexPageIsDisplayed extends Stage<ThenIndexPageIsDisplayed> {
@@ -509,9 +565,11 @@ class WoodleFormsTest extends
                         expectedMergedData.put("timeSlot1", "10:00");
                         expectedMergedData.put("timeSlot2", "14:00");
 
-                        // Verify that storePollData was called exactly once with the expected
-                        // parameters
-                        verify(pollStorageService, Mockito.times(1)).storePollData(expectedMergedData);
+                        // Verify that updatePollData was called exactly once with the expected UUID and
+                        // data
+                        // (this is the correct behavior after the UUID consistency fix)
+                        verify(pollStorageService, Mockito.times(1))
+                                        .updatePollData("12345678-1234-1234-1234-123456789012", expectedMergedData);
 
                         return self();
                 }
@@ -575,8 +633,11 @@ class WoodleFormsTest extends
 
                         // This verification should catch the bug if step 2 data gets silently deleted
                         // when step 1 data is modified and form is submitted
-                        verify(pollStorageService, Mockito.times(2)).storePollData(any());
-                        verify(pollStorageService, Mockito.atLeastOnce()).storePollData(expectedDataWithModifiedStep1);
+                        // After the UUID consistency fix, we expect updatePollData to be called instead
+                        verify(pollStorageService, Mockito.times(2))
+                                        .updatePollData(eq("12345678-1234-1234-1234-123456789012"), any());
+                        verify(pollStorageService, Mockito.atLeastOnce()).updatePollData(
+                                        "12345678-1234-1234-1234-123456789012", expectedDataWithModifiedStep1);
 
                         return self();
                 }
@@ -688,5 +749,29 @@ class WoodleFormsTest extends
                         return self();
                 }
 
+                public ThenIndexPageIsDisplayed the_user_is_redirected_to_schedule_event_without_uuid()
+                                throws Exception {
+                        result.andExpect(status().isFound())
+                                        .andExpect(view().name("redirect:/schedule-event"));
+
+                        // Follow the redirect to test the content
+                        result = mockMvc.perform(get("/schedule-event"));
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_warning_message_about_uuid_not_found_is_displayed()
+                                throws Exception {
+                        result.andExpect(status().isOk())
+                                        .andExpect(view().name("schedule-event"))
+                                        .andExpect(content().string(containsString("UUID not found")));
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_empty_form_is_displayed() throws Exception {
+                        result.andExpect(status().isOk())
+                                        .andExpect(view().name("schedule-event"));
+                        return self();
+                }
         }
 }

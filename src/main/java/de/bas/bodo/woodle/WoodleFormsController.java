@@ -94,8 +94,8 @@ public class WoodleFormsController {
         updatedData.put("activityTitle", activityTitle);
         updatedData.put("description", description);
 
-        // Store updated data
-        pollStorageService.storePollData(updatedData);
+        // Update existing data with same UUID
+        pollStorageService.updatePollData(uuid, updatedData);
 
         // Redirect to step 2 with UUID in URL
         return "redirect:/schedule-event-step2/" + uuid;
@@ -151,8 +151,8 @@ public class WoodleFormsController {
             updatedData.put("timeSlot4", timeSlot4);
         }
 
-        // Store updated data
-        pollStorageService.storePollData(updatedData);
+        // Update existing data with same UUID
+        pollStorageService.updatePollData(uuid, updatedData);
 
         // If back button was clicked, redirect to step 1
         if ("back".equals(action)) {

@@ -79,6 +79,7 @@
 - **URL:** `/schedule-event-step2/{uuid}` format
 - **DATA PERSISTENCE:** All form data saved on each step
 - **IF** a UUID given in the URL is not found, always redirect to `/schedule-event/` but without the non-existing UUID and show an empty form, also show a warning text on `/schedule-event/` that the UUID given was not found and a new UUID will be generated once the user fills the field and clicks "next" 
+- **IF** no UUID is given in the URL other then `/schedule-event/`, always redirect to `/schedule-event/` 
 
 
 ### 4. Data Continuity Test Scenario
