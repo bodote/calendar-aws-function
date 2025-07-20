@@ -2,7 +2,7 @@
 as a user i want to be able to go from the step-2 page to the next form page `schedule-event-step3` to finalize the event.
 ![Schedule Event Form 3](woodle-screenshot-step3.png) 
 ## acceptance criteria
-1. if the user is still on the second form ![Schedule Event Form 2](woodle-screenshot-step2.png) and clicks on the "next" button, the 3nd step form appears
+1. if the user is still on the second form ![Schedule Event Form 2](woodle-screenshot-step2.png) and clicks on the "next" button, the 3nd step form appears and the browser URL should show the URL path `/schedule-event-step3/<UUID>`
 2. the layout of the step-3 form should look similar to ![Schedule Event Form 3](woodle-screenshot-step3.png) 
 3. if the user is on `schedule-event-step3` and clicks the "back" button, the previous from ![Schedule Event Form 2](../src/main/jte/schedule-event-step2.jte) appears again including the data he already has entered
 4. the "Expiry Date" on `schedule-event-step3` defaults to a date which is calculated this way:
