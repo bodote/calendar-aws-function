@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Event - Step 2 - Woodle</title>
+    <title>Schedule Event - Step 3 - Woodle</title>
     <style>
         body {
             margin: 0;
@@ -43,7 +43,7 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input[type="date"], input[type="time"] {
+        input[type="date"] {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
@@ -51,14 +51,8 @@
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .time-slots {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 10px;
+        .navigation {
+            margin-top: 20px;
         }
         .back-button {
             background-color: #6c757d;
@@ -75,8 +69,8 @@
         .back-button:hover {
             background-color: #545b62;
         }
-        .next-button {
-            background-color: #007bff;
+        .create-button {
+            background-color: #28a745;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -84,11 +78,8 @@
             cursor: pointer;
             font-size: 16px;
         }
-        .next-button:hover {
-            background-color: #0056b3;
-        }
-        .navigation {
-            margin-top: 20px;
+        .create-button:hover {
+            background-color: #218838;
         }
     </style>
 </head>
@@ -96,38 +87,19 @@
     <div class="container">
         <header>
             <img src="/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
-            <h1>Schedule Event - Step 2</h1>
+            <h1>Schedule Event - Step 3</h1>
         </header>
         <main>
-            @if(pollData != null)
-                <p>Activity: <strong>${pollData.get("activityTitle")}</strong></p>
-                <p>Organizer: <strong>${pollData.get("name")}</strong></p>
-            @endif
-            
-            <form data-test-schedule-event-step2-form method="post" action="/schedule-event-step2/${uuid}">
+            <form data-test-schedule-event-step3-form method="post" action="/schedule-event-step3/${uuid}">
                 <div class="form-group">
-                    <label for="eventDate">Select Date:</label>
-                    <input type="date" id="eventDate" name="eventDate" data-test-date-field 
-                           value="${pollData != null && pollData.get("eventDate") != null ? pollData.get("eventDate") : ""}" required>
+                    <label for="expiryDate">Expiry Date:</label>
+                    <input type="date" id="expiryDate" name="expiryDate" 
+                           value="${pollData != null && pollData.get("expiryDate") != null ? pollData.get("expiryDate") : ""}"
+                           required>
                 </div>
-                
-                <div class="form-group">
-                    <label>Available Time Slots:</label>
-                    <div class="time-slots">
-                        <input type="time" name="timeSlot1" data-test-time-field1
-                               value="${pollData != null && pollData.get("timeSlot1") != null ? pollData.get("timeSlot1") : ""}">
-                        <input type="time" name="timeSlot2" data-test-time-field2
-                               value="${pollData != null && pollData.get("timeSlot2") != null ? pollData.get("timeSlot2") : ""}">
-                        <input type="time" name="timeSlot3" data-test-time-field3
-                               value="${pollData != null && pollData.get("timeSlot3") != null ? pollData.get("timeSlot3") : ""}">
-                        <input type="time" name="timeSlot4" data-test-time-field4
-                               value="${pollData != null && pollData.get("timeSlot4") != null ? pollData.get("timeSlot4") : ""}">
-                    </div>
-                </div>
-                
                 <div class="navigation">
                     <button type="submit" name="action" value="back" class="back-button" data-test-back-button>Back</button>
-                    <button type="submit" name="action" value="next" class="next-button" data-test-next-button>Next</button>
+                    <button type="submit" class="create-button" data-test-create-poll-button>Create the poll</button>
                 </div>
             </form>
         </main>

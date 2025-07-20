@@ -32,10 +32,15 @@ public class WoodleFormsController {
     }
 
     @GetMapping("/schedule-event")
-    public String scheduleEvent(@RequestParam(value = "uuidNotFound", required = false) String uuidNotFound,
+    public String scheduleEvent(
+            @RequestParam(value = "uuidNotFound", required = false) String uuidNotFound,
+            @RequestParam(value = "uuidMissing", required = false) String uuidMissing,
             Model model) {
         if ("true".equals(uuidNotFound)) {
-            model.addAttribute("warningMessage", "UUID not found");
+            model.addAttribute("warningMessage", "UUID not found / Poll not found");
+        }
+        if ("true".equals(uuidMissing)) {
+            model.addAttribute("warningMessage", "Poll id missing");
         }
         return "schedule-event";
     }
@@ -169,12 +174,73 @@ public class WoodleFormsController {
         // Update existing data with same UUID
         pollStorageService.updatePollData(uuid, updatedData);
 
-        // If back button was clicked, redirect to step 1
+        // Navigation handling
         if ("back".equals(action)) {
-            return "redirect:/schedule-event/" + uuid;
+            return "redirect:/schedule-event/" + uuid; // back to step 1
+        }
+        if ("next".equals(action)) {
+            return "redirect:/schedule-event-step3/" + uuid; // forward to step 3
         }
 
-        // For now, redirect back to step 2 (in future this might go to step 3)
+        // default stay on step 2
         return "redirect:/schedule-event-step2/" + uuid;
+    }
+
+    /* ---------------------------- STEP 3 ---------------------------------- */
+
+    @GetMapping("/schedule-event-step3")
+    public String scheduleEventStep3WithoutUuid() {
+        // Missing UUID
+        return "redirect:/schedule-event?uuidMissing=true";
+    }
+
+    @GetMapping("/schedule-event-step3/{uuid}")
+    public String scheduleEventStep3(@PathVariable String uuid, Model model) {
+        Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
+
+        if (pollData == null) {
+            // Unknown UUID
+            return "redirect:/schedule-event?uuidNotFound=true";
+        }
+
+        // Default expiryDate if not already set but eventDate present
+        if (!pollData.containsKey("expiryDate") && pollData.get("eventDate") != null) {
+            try {
+                java.time.LocalDate start = java.time.LocalDate.parse(pollData.get("eventDate"));
+                java.time.LocalDate expiry = start.plusMonths(3);
+                pollData.put("expiryDate", expiry.toString());
+            } catch (java.time.format.DateTimeParseException ignored) {
+                // ignore invalid date format
+            }
+        }
+
+        model.addAttribute("pollData", pollData);
+        model.addAttribute("uuid", uuid);
+
+        return "schedule-event-step3";
+    }
+
+    @PostMapping("/schedule-event-step3/{uuid}")
+    public String submitScheduleEventStep3(
+            @PathVariable String uuid,
+            @RequestParam(value = "expiryDate", required = false) String expiryDate,
+            @RequestParam(value = "action", required = false) String action) {
+
+        if ("back".equals(action)) {
+            return "redirect:/schedule-event-step2/" + uuid;
+        }
+
+        // For create-poll or save action (not yet fully implemented)
+        Map<String, String> existingData = pollStorageService.retrievePollData(uuid);
+        Map<String, String> updatedData = new java.util.HashMap<>();
+        if (existingData != null) {
+            updatedData.putAll(existingData);
+        }
+        if (expiryDate != null && !expiryDate.isEmpty()) {
+            updatedData.put("expiryDate", expiryDate);
+        }
+        pollStorageService.updatePollData(uuid, updatedData);
+
+        return "redirect:/schedule-event-step3/" + uuid;
     }
 }
