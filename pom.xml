@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.3</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>de.bas.bodo</groupId>
 	<artifactId>woodle</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>woodle</name>
 	<description>woodle poll app for aws lambda</description>
-	<url/>
+	<url />
 	<licenses>
-		<license/>
+		<license />
 	</licenses>
 	<developers>
-		<developer/>
+		<developer />
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection />
+		<developerConnection />
+		<tag />
+		<url />
 	</scm>
 	<properties>
 		<java.version>21</java.version>
@@ -42,11 +43,7 @@
 			<artifactId>jte-spring-boot-starter-3</artifactId>
 			<version>3.1.16</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-function-web</artifactId>
-		</dependency>
-		
+
 		<!-- AWS Serverless Java Container for Spring Boot 3 -->
 		<dependency>
 			<groupId>com.amazonaws.serverless</groupId>
@@ -76,7 +73,7 @@
 			<version>${jgiven.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- Jsoup for HTML parsing in tests -->
 		<dependency>
 			<groupId>org.jsoup</groupId>
@@ -84,20 +81,20 @@
 			<version>1.20.1</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- AWS SDK for S3 (MinIO compatible) -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 			<version>2.28.1</version>
 		</dependency>
-		
+
 		<!-- Jackson for JSON processing -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
-		
+
 		<!-- Spring Context Indexer for better cold start performance -->
 		<dependency>
 			<groupId>org.springframework</groupId>
