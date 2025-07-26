@@ -24,7 +24,7 @@ This is "Woodle" - a calendar/polling web application built with Spring Boot 3 a
 **Storage Layer:**
 - `PollStorageService` interface with two implementations:
   - `InMemoryPollStorageService` for development/testing
-  - `S3PollStorageService` for production (MinIO/S3 compatible)
+  - `S3PollStorageService` for production (LocalStack/S3 compatible)
 
 **Controller Layer:**
 - `WoodleFormsController` handles all form interactions and navigation
@@ -59,15 +59,15 @@ This is "Woodle" - a calendar/polling web application built with Spring Boot 3 a
 # Run Spring Boot application locally
 ./mvnw spring-boot:run
 
-# Start MinIO for local S3-compatible storage
-doc/minio-start.sh
+# Start LocalStack for local S3-compatible storage
+scripts/localstack-start.sh
 
-# Stop MinIO
-doc/minio-stop.sh
+# Stop LocalStack
+scripts/localstack-stop.sh
 
-# Check MinIO status and cleanup
-doc/minio-check.sh
-doc/minio-cleanup.sh
+# Check LocalStack status and cleanup
+scripts/localstack-check.sh
+scripts/localstack-cleanup.sh
 ```
 
 **AWS Deployment:**
