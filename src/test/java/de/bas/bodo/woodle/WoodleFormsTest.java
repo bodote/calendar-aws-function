@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -21,7 +22,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -44,7 +45,7 @@ class WoodleFormsTest extends
         @Autowired
         private MockMvc mockMvc;
 
-        @MockBean
+        @MockitoBean
         private PollStorageService pollStorageService;
 
         @Test
@@ -159,6 +160,38 @@ class WoodleFormsTest extends
                 then().the_user_is_redirected_to_schedule_event_without_uuid()
                                 .and().the_warning_message_about_uuid_not_found_is_displayed()
                                 .and().the_empty_form_is_displayed();
+        }
+
+        @Test
+        void shouldDisplayEventSummaryWithAllDataFromAllSteps() throws Exception {
+                final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
+
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
+                when().the_user_visits_the_event_summary_page(TEST_UUID);
+                then().the_event_summary_page_is_displayed()
+                                .and().the_summary_contains_all_form_data_from_all_steps()
+                                .and().the_shareable_event_url_is_displayed(TEST_UUID);
+        }
+
+        @Test
+        void shouldRedirectToEventSummaryWhenCreatePollButtonIsClicked() throws Exception {
+                final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
+
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
+                when().the_user_clicks_create_poll_button_on_step3(TEST_UUID);
+                then().the_user_is_redirected_to_event_summary_page(TEST_UUID);
+        }
+
+        @Test
+        void shouldRedirectToEventSummaryWhenCreatePollButtonIsClickedWithoutAction() throws Exception {
+                final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
+
+                given().the_application_is_running_with_mock_mvc(mockMvc)
+                                .and().the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
+                when().the_user_clicks_create_poll_button_without_action_on_step3(TEST_UUID);
+                then().the_user_is_redirected_to_event_summary_page(TEST_UUID);
         }
 
         public static class GivenIndexPage extends Stage<GivenIndexPage> {
@@ -287,6 +320,31 @@ class WoodleFormsTest extends
                         Mockito.when(pollStorageService.retrievePollData(any())).thenReturn(null);
                         return self();
                 }
+
+                public GivenIndexPage the_poll_storage_service_returns_complete_event_data(
+                                PollStorageService pollStorageService, String uuid) {
+                        this.pollStorageService = pollStorageService;
+
+                        // Mock complete event data from all 3 Steps
+                        Map<String, String> completeEventData = new HashMap<>();
+                        // Step 1 data
+                        completeEventData.put("name", "John Doe");
+                        completeEventData.put("email", "john.doe@example.com");
+                        completeEventData.put("activityTitle", "Team Meeting");
+                        completeEventData.put("description", "Weekly team sync meeting");
+                        // Step 2 data
+                        completeEventData.put("eventDate", "2024-01-15");
+                        completeEventData.put("timeSlot1", "10:00");
+                        completeEventData.put("timeSlot2", "14:00");
+                        completeEventData.put("timeSlot3", "16:00");
+                        completeEventData.put("timeSlot4", "18:00");
+                        // Step 3 data
+                        completeEventData.put("expiryDate", "2024-04-15");
+
+                        Mockito.when(pollStorageService.retrievePollData(uuid)).thenReturn(completeEventData);
+
+                        return self();
+                }
         }
 
         public static class WhenUserVisitsIndexPage extends Stage<WhenUserVisitsIndexPage> {
@@ -397,6 +455,23 @@ class WoodleFormsTest extends
                 public WhenUserVisitsIndexPage the_user_visits_schedule_event_step2_without_uuid()
                                 throws Exception {
                         result = mockMvc.perform(get("/schedule-event-step2/"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_visits_the_event_summary_page(String uuid) throws Exception {
+                        result = mockMvc.perform(get("/event/" + uuid));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_clicks_create_poll_button_on_step3(String uuid) throws Exception {
+                        result = mockMvc.perform(post("/schedule-event-step3/" + uuid)
+                                        .param("action", "create-poll"));
+                        return self();
+                }
+
+                public WhenUserVisitsIndexPage the_user_clicks_create_poll_button_without_action_on_step3(String uuid) throws Exception {
+                        result = mockMvc.perform(post("/schedule-event-step3/" + uuid)
+                                        .param("action", "create-poll"));
                         return self();
                 }
         }
@@ -776,6 +851,69 @@ class WoodleFormsTest extends
                 public ThenIndexPageIsDisplayed the_empty_form_is_displayed() throws Exception {
                         result.andExpect(status().isOk())
                                         .andExpect(view().name("schedule-event"));
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_event_summary_page_is_displayed() throws Exception {
+                        result.andExpect(status().isOk())
+                                        .andExpect(view().name("event-summary"));
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_summary_contains_all_form_data_from_all_steps() throws Exception {
+                        String htmlContent = result.andReturn().getResponse().getContentAsString();
+                        Document doc = Jsoup.parse(htmlContent);
+
+                        // Verify Step 1 data is displayed
+                        assertThat(doc.select("div[data-test='event-details']").text())
+                                        .as("Event summary should contain organizer name")
+                                        .contains("John Doe");
+
+                        assertThat(doc.select("div[data-test='event-details']").text())
+                                        .as("Event summary should contain email")
+                                        .contains("john.doe@example.com");
+
+                        assertThat(doc.select("div[data-test='event-details']").text())
+                                        .as("Event summary should contain activity title")
+                                        .contains("Team Meeting");
+
+                        assertThat(doc.select("div[data-test='event-details']").text())
+                                        .as("Event summary should contain description")
+                                        .contains("Weekly team sync meeting");
+
+                        // Verify Step 2 data is displayed
+                        assertThat(doc.select("div[data-test='time-slots']").text())
+                                        .as("Event summary should contain event date")
+                                        .contains("2024-01-15");
+
+                        assertThat(doc.select("div[data-test='time-slots']").text())
+                                        .as("Event summary should contain time slots")
+                                        .contains("10:00")
+                                        .contains("14:00");
+
+                        // Verify Step 3 data is displayed
+                        assertThat(doc.select("div[data-test='expiry-info']").text())
+                                        .as("Event summary should contain expiry date")
+                                        .contains("2024-04-15");
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_shareable_event_url_is_displayed(String uuid) throws Exception {
+                        String htmlContent = result.andReturn().getResponse().getContentAsString();
+                        Document doc = Jsoup.parse(htmlContent);
+
+                        String expectedUrl = "http://localhost:8080/event/" + uuid;
+                        assertThat(doc.select("div[data-test='shareable-url']").text())
+                                        .as("Event summary should display shareable URL")
+                                        .contains(expectedUrl);
+
+                        return self();
+                }
+
+                public ThenIndexPageIsDisplayed the_user_is_redirected_to_event_summary_page(String uuid) throws Exception {
+                        result.andExpect(status().is3xxRedirection())
+                                        .andExpect(redirectedUrl("/event/" + uuid));
                         return self();
                 }
         }

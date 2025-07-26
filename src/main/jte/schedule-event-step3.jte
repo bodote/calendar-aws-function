@@ -99,7 +99,7 @@
                 </div>
                 <div class="navigation">
                     <button type="submit" name="action" value="back" class="back-button" data-test-back-button>Back</button>
-                    <button type="submit" class="create-button" data-test-create-poll-button>Create the poll</button>
+                    <button type="submit" name="action" value="create-poll" class="create-button" data-test-create-poll-button>Create the poll</button>
                 </div>
             </form>
         </main>

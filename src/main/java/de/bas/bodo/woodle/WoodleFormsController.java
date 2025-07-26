@@ -230,7 +230,7 @@ public class WoodleFormsController {
             return "redirect:/schedule-event-step2/" + uuid;
         }
 
-        // For create-poll or save action (not yet fully implemented)
+        // Update data with expiry date
         Map<String, String> existingData = pollStorageService.retrievePollData(uuid);
         Map<String, String> updatedData = new java.util.HashMap<>();
         if (existingData != null) {
@@ -241,6 +241,29 @@ public class WoodleFormsController {
         }
         pollStorageService.updatePollData(uuid, updatedData);
 
+        // Handle create-poll action - redirect to event summary
+        if ("create-poll".equals(action)) {
+            return "redirect:/event/" + uuid;
+        }
+
+        // Default: stay on step 3
         return "redirect:/schedule-event-step3/" + uuid;
+    }
+
+    @GetMapping("/event/{uuid}")
+    public String eventSummary(@PathVariable String uuid, Model model) {
+        // Retrieve poll data from storage
+        Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
+        
+        // If UUID not found, return 404 (will be handled by Spring)
+        if (pollData == null) {
+            return "redirect:/schedule-event?uuidNotFound=true";
+        }
+        
+        // Add data to model for template
+        model.addAttribute("pollData", pollData);
+        model.addAttribute("uuid", uuid);
+        
+        return "event-summary";
     }
 }
