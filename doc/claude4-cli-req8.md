@@ -24,10 +24,11 @@ As a user creating an event poll on Step 2, I want to be able to add multiple da
 ## Acceptance Criteria
 
 ### 1. Add Button Display (Test First!)
-- Test that step 2 page displays a "+" button with plus symbol
+- Test that step 2 page displays a "+" button with plus symbol image only (no text)
 - Button should have `data-test="add-proposal-button"` attribute
 - Button should be clearly visible and positioned appropriately on the form
-- Use existing plus symbol image: `Plus-Symbol-Transparent-small.png`
+- Use existing plus symbol image: `doc/Plus-Symbol-Transparent-small.png`
+- Button should contain only the plus symbol image, no additional text
 
 ### 2. Dynamic Field Addition (Test First!)
 - Test that clicking "+" button adds a new set of date/time input fields

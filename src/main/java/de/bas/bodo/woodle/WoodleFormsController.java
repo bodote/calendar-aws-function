@@ -131,6 +131,11 @@ public class WoodleFormsController {
         // Add data to model for the template
         model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
+        
+        // Add proposal count for dynamic field rendering
+        String proposalCountStr = pollData.get("proposalCount");
+        int proposalCount = (proposalCountStr != null) ? Integer.parseInt(proposalCountStr) : 1;
+        model.addAttribute("proposalCount", proposalCount);
 
         return "schedule-event-step2";
     }
@@ -138,12 +143,9 @@ public class WoodleFormsController {
     @PostMapping("/schedule-event-step2/{uuid}")
     public String submitScheduleEventStep2(
             @PathVariable String uuid,
-            @RequestParam(value = "eventDate", required = false) String eventDate,
-            @RequestParam(value = "timeSlot1", required = false) String timeSlot1,
-            @RequestParam(value = "timeSlot2", required = false) String timeSlot2,
-            @RequestParam(value = "timeSlot3", required = false) String timeSlot3,
-            @RequestParam(value = "timeSlot4", required = false) String timeSlot4,
-            @RequestParam(value = "action", required = false) String action) {
+            @RequestParam Map<String, String> allParams) {
+        
+        String action = allParams.get("action");
 
         // Retrieve existing poll data
         Map<String, String> existingData = pollStorageService.retrievePollData(uuid);
@@ -154,24 +156,28 @@ public class WoodleFormsController {
             updatedData.putAll(existingData);
         }
 
-        // Add date/time data
-        if (eventDate != null && !eventDate.isEmpty()) {
-            updatedData.put("eventDate", eventDate);
-        }
-        if (timeSlot1 != null && !timeSlot1.isEmpty()) {
-            updatedData.put("timeSlot1", timeSlot1);
-        }
-        if (timeSlot2 != null && !timeSlot2.isEmpty()) {
-            updatedData.put("timeSlot2", timeSlot2);
-        }
-        if (timeSlot3 != null && !timeSlot3.isEmpty()) {
-            updatedData.put("timeSlot3", timeSlot3);
-        }
-        if (timeSlot4 != null && !timeSlot4.isEmpty()) {
-            updatedData.put("timeSlot4", timeSlot4);
+        // Add all form data (excluding action parameter)
+        for (Map.Entry<String, String> entry : allParams.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            
+            // Skip the action parameter and only store non-empty values
+            if (!"action".equals(key) && value != null && !value.isEmpty()) {
+                updatedData.put(key, value);
+            }
         }
 
-        // Update existing data with same UUID
+        // Handle special actions before saving general form data
+        if ("add-proposal".equals(action)) {
+            // Increment proposal count to show additional fields
+            String currentCountStr = updatedData.get("proposalCount");
+            int currentCount = (currentCountStr != null) ? Integer.parseInt(currentCountStr) : 1;
+            updatedData.put("proposalCount", String.valueOf(currentCount + 1));
+            pollStorageService.updatePollData(uuid, updatedData);
+            return "redirect:/schedule-event-step2/" + uuid;
+        }
+
+        // Update existing data with same UUID (for normal form submissions)
         pollStorageService.updatePollData(uuid, updatedData);
 
         // Navigation handling

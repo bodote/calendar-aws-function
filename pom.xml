@@ -192,7 +192,18 @@
 						-XX:+EnableDynamicAgentLoading
 						--add-opens java.base/java.lang=ALL-UNNAMED
 						--add-opens java.base/java.util=ALL-UNNAMED
+						-Xshare:off
 					</argLine>
+					<systemPropertyVariables>
+						<spring.main.banner-mode>off</spring.main.banner-mode>
+						<jgiven.report.disable>true</jgiven.report.disable>
+						<logging.level.root>WARN</logging.level.root>
+						<logging.level.org.springframework>WARN</logging.level.org.springframework>
+						<logging.level.com.tngtech.jgiven>OFF</logging.level.com.tngtech.jgiven>
+					</systemPropertyVariables>
+					<forkCount>1</forkCount>
+					<reuseForks>true</reuseForks>
+					<redirectTestOutputToFile>true</redirectTestOutputToFile>
 				</configuration>
 			</plugin>
 			<plugin>

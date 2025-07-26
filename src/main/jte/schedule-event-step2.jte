@@ -1,5 +1,6 @@
 @param java.util.Map<String, String> pollData = null
 @param String uuid
+@param int proposalCount = 1
 
 <!DOCTYPE html>
 <html lang="en">
@@ -90,6 +91,21 @@
         .navigation {
             margin-top: 20px;
         }
+        .add-proposal-button {
+            background-color: #28a745;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .add-proposal-button:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
@@ -105,25 +121,53 @@
             @endif
             
             <form data-test-schedule-event-step2-form method="post" action="/schedule-event-step2/${uuid}">
-                <div class="form-group">
-                    <label for="eventDate">Select Date:</label>
-                    <input type="date" id="eventDate" name="eventDate" data-test-date-field 
-                           value="${pollData != null && pollData.get("eventDate") != null ? pollData.get("eventDate") : ""}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Available Time Slots:</label>
-                    <div class="time-slots">
-                        <input type="time" name="timeSlot1" data-test-time-field1
-                               value="${pollData != null && pollData.get("timeSlot1") != null ? pollData.get("timeSlot1") : ""}">
-                        <input type="time" name="timeSlot2" data-test-time-field2
-                               value="${pollData != null && pollData.get("timeSlot2") != null ? pollData.get("timeSlot2") : ""}">
-                        <input type="time" name="timeSlot3" data-test-time-field3
-                               value="${pollData != null && pollData.get("timeSlot3") != null ? pollData.get("timeSlot3") : ""}">
-                        <input type="time" name="timeSlot4" data-test-time-field4
-                               value="${pollData != null && pollData.get("timeSlot4") != null ? pollData.get("timeSlot4") : ""}">
+                @for(int i = 1; i <= proposalCount; i++)
+                    <div class="form-group">
+                        @if(i == 1)
+                            <label for="eventDate">Select Date:</label>
+                            <input type="date" 
+                                   id="eventDate" 
+                                   name="eventDate" 
+                                   data-test="date-field"
+                                   value="${pollData != null && pollData.get("eventDate") != null ? pollData.get("eventDate") : ""}"
+                                   required>
+                        @else
+                            <label for="eventDate${i}">Alternative Date ${i}:</label>
+                            <input type="date" 
+                                   id="eventDate${i}" 
+                                   name="eventDate${i}" 
+                                   data-test="date-field-${i}"
+                                   value="${pollData != null && pollData.get("eventDate" + i) != null ? pollData.get("eventDate" + i) : ""}">
+                        @endif
                     </div>
-                </div>
+                    
+                    <div class="form-group">
+                        @if(i == 1)
+                            <label>Available Time Slots:</label>
+                        @else
+                            <label>Time Slots for Alternative ${i}:</label>
+                        @endif
+                        <div class="time-slots">
+                            @for(int j = 1; j <= 3; j++)
+                                @if(i == 1)
+                                    <input type="time" 
+                                           name="timeSlot${j}" 
+                                           data-test="time-field${j}"
+                                           value="${pollData != null && pollData.get("timeSlot" + j) != null ? pollData.get("timeSlot" + j) : ""}">
+                                @else
+                                    <input type="time" 
+                                           name="timeSlot${i}_${j}" 
+                                           data-test="time-field-${i}-${j}"
+                                           value="${pollData != null && pollData.get("timeSlot" + i + "_" + j) != null ? pollData.get("timeSlot" + i + "_" + j) : ""}">
+                                @endif
+                            @endfor
+                        </div>
+                    </div>
+                @endfor
+                
+                <button type="submit" name="action" value="add-proposal" class="add-proposal-button" data-test="add-proposal-button">
+                    <img src="/Plus-Symbol-Transparent-small.png" alt="+" style="height: 20px; width: 20px;">
+                </button>
                 
                 <div class="navigation">
                     <button type="submit" name="action" value="back" class="back-button" data-test-back-button>Back</button>

@@ -301,12 +301,12 @@ class WoodleScheduleEventStep3Test extends
             String htmlContent = step2Result.andReturn().getResponse().getContentAsString();
             Document doc = Jsoup.parse(htmlContent);
 
-            String dateValue = doc.select("input[data-test-date-field]").attr("value");
+            String dateValue = doc.select("input[data-test=\"date-field\"]").attr("value");
             assertThat(dateValue)
                     .as("Date field should be pre-filled")
                     .isEqualTo("2024-01-15");
 
-            String timeSlot1Value = doc.select("input[data-test-time-field1]").attr("value");
+            String timeSlot1Value = doc.select("input[data-test=\"time-field1\"]").attr("value");
             assertThat(timeSlot1Value)
                     .as("Time slot 1 should be pre-filled")
                     .isEqualTo("10:00");
