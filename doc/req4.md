@@ -1,10 +1,10 @@
 # requirement 4 
 the schedule-event form should now add several more input fields according to the image: 
 
-![Schedule Event Form 1](schedule-event.png)
+![Schedule Event Form 1](../assets/schedule-event.png)
 
 ## acceptance criteria
-* all input fields shown in the ![Schedule Event Form](schedule-event.png) should be on the "schedule-event" page, test first ! 
+* all input fields shown in the ![Schedule Event Form](../assets/schedule-event.png) should be on the "schedule-event" page, test first ! 
 * the required fields are 
   * "Your name:"
   * "Email adress:"

@@ -2,7 +2,7 @@
 
 **User Story:** As a user, I want my form data to be automatically saved so that I can return later to modify or continue my event scheduling.
 
-![Schedule Event Form 1](schedule-event.png)
+![Schedule Event Form 1](../assets/schedule-event.png)
 
 ## Implementation Strategy
 - **Architecture:** Stateless backend with S3-compatible storage
@@ -62,12 +62,12 @@
 
 **User Story:** As a user, I want to proceed to a second form page to enter date and time details for my planned activity.
 
-![Schedule Event Form 2](woodle-screenshot-step2.png)
+![Schedule Event Form 2](../assets/woodle-screenshot-step2.png)
 
 ## Acceptance Criteria
 
 ### 1. Form Layout
-- **LAYOUT:** Match ![Schedule Event Form 2](woodle-screenshot-step2.png)
+- **LAYOUT:** Match ![Schedule Event Form 2](../assets/woodle-screenshot-step2.png)
 - **ELEMENTS:** Date input, at least 2 time input fields, navigation buttons
 
 ### 2. Input Fields

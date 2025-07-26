@@ -30,7 +30,7 @@ As a user who has completed all 3 steps of event creation (from req6), when I cl
   - Step 1: User name, email, activity title, description
   - Step 2: Selected dates and time slots  
   - Step 3: Expiry date
-- Layout should match ![Event Summary page](woodle-screenshot-summary.png)
+- Layout should match ![Event Summary page](../assets/woodle-screenshot-summary.png)
 - Template: `src/main/jte/event-summary.jte`
 
 ### 2. Data Persistence (Test First!)

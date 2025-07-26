@@ -4,7 +4,7 @@
 As a user, I want to navigate from the step-2 page to a step-3 form page (`schedule-event-step3`) to finalize the event configuration.
 
 ## Reference UI
-![Schedule Event Form 3](woodle-screenshot-step3.png)
+![Schedule Event Form 3](../assets/woodle-screenshot-step3.png)
 
 ## Technical Requirements
 

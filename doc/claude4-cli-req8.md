@@ -27,7 +27,7 @@ As a user creating an event poll on Step 2, I want to be able to add multiple da
 - Test that step 2 page displays a "+" button with plus symbol image only (no text)
 - Button should have `data-test="add-proposal-button"` attribute
 - Button should be clearly visible and positioned appropriately on the form
-- Use existing plus symbol image: `doc/Plus-Symbol-Transparent-small.png`
+- Use existing plus symbol image: `../assets/Plus-Symbol-Transparent-small.png`
 - Button should contain only the plus symbol image, no additional text
 
 ### 2. Dynamic Field Addition (Test First!)

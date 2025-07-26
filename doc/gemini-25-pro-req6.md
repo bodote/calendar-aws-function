@@ -2,7 +2,7 @@
 
 As a user, I want to go from the step-2 page to a new `schedule-event-step3` page to finalize the event details.
 
-![Schedule Event Form 3](woodle-screenshot-step3.png)
+![Schedule Event Form 3](../assets/woodle-screenshot-step3.png)
 
 ## TDD Development Plan
 

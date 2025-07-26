@@ -1,6 +1,6 @@
 # Requirement 6
 As a user, I want to be able to proceed from the step-2 page to the next form page `schedule-event-step3` to finalize the event.
-![Schedule Event Form 3](woodle-screenshot-step3.png)
+![Schedule Event Form 3](../assets/woodle-screenshot-step3.png)
 
 ## Acceptance Criteria
 Each criterion is to be addressed one by one using TDD: write a failing test first (using JGiven for readability), get user approval, then implement the minimal code to make it pass.
@@ -32,7 +32,7 @@ Each criterion is to be addressed one by one using TDD: write a failing test fir
    Then the user is redirected to the `schedule-event` page with a warning that the UUID was not found (similar to step-2 implementation).
 
 ### UI Criteria (Do not use TDD for layout; test presence of elements only)
-6. The layout of the step-3 form should look similar to ![Schedule Event Form 3](woodle-screenshot-step3.png).  
+6. The layout of the step-3 form should look similar to ![Schedule Event Form 3](../assets/woodle-screenshot-step3.png).  
    - Test that required elements (e.g., Expiry Date field, Back button, Create Poll button) are present, but do not test styling, positioning, or image details.
 
 7. The step-3 form includes a "Back" button and a "Create the Poll" button.  

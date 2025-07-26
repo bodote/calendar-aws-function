@@ -17,7 +17,7 @@ As a meeting organiser I want to proceed from the second step of the “Schedule
 
 2. **Step-3 form layout**
    - **Given** I request `/schedule-event-step3/{uuid}`
-   - **Then** the response contains the Step-3 HTML form (see `woodle-screenshot-step3.png`) with _at least_ the following elements:
+   - **Then** the response contains the Step-3 HTML form (see `../assets/woodle-screenshot-step3.png`) with _at least_ the following elements:
      1. An input field named `expiryDate` (type `date`).
      2. A **Back** button.
      3. A **Create the poll** submit button.

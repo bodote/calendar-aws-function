@@ -6,7 +6,7 @@
  * there is a column for each date , also each timespan, but all time span of the same date are grouped together so that the user can clearly see what data a timespan is refering to 
  * there is only one rows as long as no other user has entered his name and hast not yet make his choice about the events.
  * this only row start with an empty input field (where later a user can enter is name) 
- * the table should look like this: ![proposed events table](StimmabgabeTabelle.png)
+ * the table should look like this: ![proposed events table](../assets/StimmabgabeTabelle.png)
  * the test should test that the event details are in a table, that the table has column headers an that the dates and timespans of all entered events are ordered from left to right
  * once the table works the still existing  Event Details on the summary page that is NOT in the table should be removed. 
  * there should be 2 header rows: the first one contains the dates and the second the time. if there are more than one timeslots on the same date then the header cell with the date should span over all the time columns in the 2nd header row that have the same date. the date therefore shows up only once for all timeslots on the same date.

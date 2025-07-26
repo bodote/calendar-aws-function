@@ -11,7 +11,7 @@ As a user, I want to proceed from the step-2 event scheduling form to a new step
    - Then the step-3 form page (`schedule-event-step3`) is displayed.
 
 2. **Step 3 Form Layout**
-   - The step-3 form contains all the elements visible in the reference screenshot (`woodle-screenshot-step3.png`).
+   - The step-3 form contains all the elements visible in the reference screenshot (`../assets/woodle-screenshot-step3.png`).
    - (Note: Only test for the presence of elements, not their style or exact layout.)
 
 3. **Back Navigation from Step 3**
