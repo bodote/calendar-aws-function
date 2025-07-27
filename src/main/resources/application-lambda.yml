@@ -1,14 +1,17 @@
 spring:
   main:
     web-application-type: servlet
+    lazy-initialization: true
   cloud:
     function:
       web:
-        path-prefix: /api
+        path-prefix: /
 
-# Disable embedded web server when running in Lambda
+# Configure for Lambda environment - don't start embedded server
 server:
-  port: -1
+  port: ${PORT:-8080}
+  servlet:
+    context-path: /
 
 logging:
   level:
