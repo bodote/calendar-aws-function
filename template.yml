@@ -6,12 +6,15 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 512
+    Environment:
+      Variables:
+        DISABLE_ASYNC_INIT: "true"
 
 Resources:
   WoodleLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
+      Handler: de.bas.bodo.woodle.StreamLambdaHandler
       Runtime: java21
       CodeUri: ./
       Environment:
