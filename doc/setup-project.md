@@ -11,6 +11,10 @@
 * enable syntax highlighting for markdown files if not yet enabled using 
   *  The "workbench.colorTheme": "Default Dark+" setting
   *  The theme-specific wrapper "[Default Dark+]" in the token color customizations 
+* for data storege we use AWS S3. 
+  * To make local running integration test possible we use Amazons "LocalStack" running in docker. 
+  * use "TestContainer" to start the LocalStack if neccessary
+
 
 # some parameters
 * groupId: de.bas.bodo; 
