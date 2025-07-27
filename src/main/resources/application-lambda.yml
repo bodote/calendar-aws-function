@@ -16,8 +16,8 @@ server:
 logging:
   level:
     de.bas.bodo.woodle.infrastructure.S3PollStorageService: INFO
-    root: DEBUG
-    org.springframework: DEBUG
+    root: INFO
+    org.springframework: INFO
 
 # Use precompiled JTE templates in Lambda
 gg:

@@ -81,7 +81,7 @@ sam build
 sam local invoke WoodleLambdaFunction --event get-debug-endpoint.json --env-vars env.json --docker-network calendar-aws-function_default
 
 # Run Lambda as API Gateway locally
-sam local start-api --port 3000 --env-vars env.json --docker-network calendar-aws-function_default
+sam local start-api --warm-containers eager --port 3000 --env-vars env.json --docker-network calendar-aws-function_default
 # App available at: http://localhost:3000
 ```
 
