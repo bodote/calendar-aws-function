@@ -10,7 +10,7 @@ This is "Woodle" - a calendar/polling web application built with Spring Boot 3 a
 - Spring Boot 3.5.3 with Java 21
 - JTE templating engine for server-side rendering
 - AWS Serverless Java Container for Lambda deployment
-- MinIO/S3 for poll data storage
+- LocalStack/S3 for poll data storage
 - JGiven for BDD-style testing
 - Maven for build management
 
@@ -54,19 +54,43 @@ This is "Woodle" - a calendar/polling web application built with Spring Boot 3 a
 ./mvnw jgiven:report
 ```
 
-**Local Development:**
-```bash
-# Run Spring Boot application locally
-./mvnw spring-boot:run
+**Local Development Options:**
 
+### Option 1: Spring Boot + LocalStack
+```bash
 # Start LocalStack for local S3-compatible storage
 scripts/localstack-start.sh
 
+# Run Spring Boot application locally (connects to LocalStack automatically)
+./mvnw spring-boot:run
+# App available at: http://localhost:8080
+
 # Stop LocalStack
 scripts/localstack-stop.sh
+```
 
-# Check LocalStack status and cleanup
+### Option 2: SAM Local Lambda + LocalStack
+```bash
+# Start LocalStack
+docker-compose up -d localstack
+
+# Build Lambda package
+sam build
+
+# Test single Lambda invocation
+sam local invoke WoodleLambdaFunction --event get-debug-endpoint.json --env-vars env.json --docker-network calendar-aws-function_default
+
+# Run Lambda as API Gateway locally
+sam local start-api --port 3000 --env-vars env.json --docker-network calendar-aws-function_default
+# App available at: http://localhost:3000
+```
+
+**LocalStack Management:**
+```bash
+# Check LocalStack status and S3 buckets
 scripts/localstack-check.sh
+
+# Clean up LocalStack data
 scripts/localstack-cleanup.sh
 ```
 
@@ -74,7 +98,7 @@ scripts/localstack-cleanup.sh
 ```bash
 # Deploy to AWS Lambda (requires SAM CLI)
 sam build
-sam deploy
+sam deploy --guided
 ```
 
 ## Testing Guidelines
@@ -106,3 +130,7 @@ sam deploy
 **Debugging:**
 - Enable DEBUG logging in application.yml for Spring Boot path resolution issues
 - Use Spring Boot debug options for 404 troubleshooting
+
+## SAM Local Development Configuration
+
+**Note:** For detailed SAM CLI environment variable configuration guidance, see global Claude Code settings at `~/.config/claude-code/settings.json`

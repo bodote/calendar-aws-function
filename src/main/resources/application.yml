@@ -13,12 +13,18 @@ gg:
   jte:
     development-mode: true
 
+# Logging configuration
+logging:
+  level:
+    de.bas.bodo.woodle.infrastructure.S3PollStorageService: INFO
+    root: INFO
+
 # AWS S3 Configuration
 aws:
   s3:
-    endpoint: http://localhost:4566
-    region: us-east-1
-    access-key: test
-    secret-key: test
-    bucket-name: de.bas.bodo
-    force-path-style: true
+    endpoint: ${AWS_S3_ENDPOINT:http://localhost:4566}
+    region: ${AWS_S3_REGION:us-east-1}
+    access-key: ${AWS_S3_ACCESS_KEY:test}
+    secret-key: ${AWS_S3_SECRET_KEY:test}
+    bucket-name: ${AWS_S3_BUCKET_NAME:de.bas.bodo}
+    force-path-style: ${AWS_S3_FORCE_PATH_STYLE:true}

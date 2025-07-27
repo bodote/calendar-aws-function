@@ -3,12 +3,14 @@ package de.bas.bodo.woodle;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import de.bas.bodo.woodle.service.PollStorageService;
 
@@ -16,6 +18,24 @@ import de.bas.bodo.woodle.service.PollStorageService;
 public class WoodleFormsController {
 
     private final PollStorageService pollStorageService;
+
+    @Value("${aws.s3.endpoint}")
+    private String s3Endpoint;
+
+    @Value("${aws.s3.region}")
+    private String s3Region;
+
+    @Value("${aws.s3.access-key}")
+    private String s3AccessKey;
+
+    @Value("${aws.s3.secret-key}")
+    private String s3SecretKey;
+
+    @Value("${aws.s3.bucket-name}")
+    private String s3BucketName;
+
+    @Value("${aws.s3.force-path-style}")
+    private String s3ForcePathStyle;
 
     public WoodleFormsController(PollStorageService pollStorageService) {
         this.pollStorageService = pollStorageService;
@@ -29,6 +49,28 @@ public class WoodleFormsController {
     @GetMapping("/index.html")
     public String index() {
         return "index";
+    }
+
+    @GetMapping("/debug-env")
+    @ResponseBody
+    public String debugEnvironment() {
+        StringBuilder debug = new StringBuilder();
+        debug.append("Environment Variables Debug:\n");
+        debug.append("AWS_S3_ENDPOINT: ").append(System.getenv("AWS_S3_ENDPOINT")).append("\n");
+        debug.append("AWS_S3_REGION: ").append(System.getenv("AWS_S3_REGION")).append("\n");
+        debug.append("AWS_S3_ACCESS_KEY: ").append(System.getenv("AWS_S3_ACCESS_KEY")).append("\n");
+        debug.append("AWS_S3_SECRET_KEY: ").append(System.getenv("AWS_S3_SECRET_KEY")).append("\n");
+        debug.append("AWS_S3_BUCKET_NAME: ").append(System.getenv("AWS_S3_BUCKET_NAME")).append("\n");
+        debug.append("AWS_S3_FORCE_PATH_STYLE: ").append(System.getenv("AWS_S3_FORCE_PATH_STYLE")).append("\n");
+        debug.append("\n");
+        debug.append("Spring Boot Properties (@Value) Debug:\n");
+        debug.append("aws.s3.endpoint: ").append(s3Endpoint).append("\n");
+        debug.append("aws.s3.region: ").append(s3Region).append("\n");
+        debug.append("aws.s3.access-key: ").append(s3AccessKey).append("\n");
+        debug.append("aws.s3.secret-key: ").append(s3SecretKey).append("\n");
+        debug.append("aws.s3.bucket-name: ").append(s3BucketName).append("\n");
+        debug.append("aws.s3.force-path-style: ").append(s3ForcePathStyle).append("\n");
+        return debug.toString();
     }
 
     @GetMapping("/schedule-event")

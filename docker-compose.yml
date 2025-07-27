@@ -18,3 +18,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  # SAM Local will be started manually with:
+  # sam local start-api --port 3000 --docker-network calendar-aws-function_default

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.bas.bodo.woodle.service.PollStorageService;
@@ -29,6 +31,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  */
 @Service
 @Primary
+@Slf4j
 public class S3PollStorageService implements PollStorageService {
 
     private static final String POLLS_PREFIX = "polls/";
@@ -45,6 +48,30 @@ public class S3PollStorageService implements PollStorageService {
             @Value("${aws.s3.secret-key}") String secretKey,
             @Value("${aws.s3.bucket-name}") String bucketName,
             @Value("${aws.s3.force-path-style}") boolean forcePathStyle) {
+        
+        // DEBUG: Override with environment variables directly if available
+        String envEndpoint = System.getenv("AWS_S3_ENDPOINT");
+        String envRegion = System.getenv("AWS_S3_REGION");
+        String envAccessKey = System.getenv("AWS_S3_ACCESS_KEY");
+        String envSecretKey = System.getenv("AWS_S3_SECRET_KEY");
+        String envBucketName = System.getenv("AWS_S3_BUCKET_NAME");
+        String envForcePathStyle = System.getenv("AWS_S3_FORCE_PATH_STYLE");
+        
+        if (envEndpoint != null) endpoint = envEndpoint;
+        if (envRegion != null) region = envRegion;
+        if (envAccessKey != null) accessKey = envAccessKey;
+        if (envSecretKey != null) secretKey = envSecretKey;
+        if (envBucketName != null) bucketName = envBucketName;
+        if (envForcePathStyle != null) forcePathStyle = Boolean.parseBoolean(envForcePathStyle);
+        
+        log.info("=== S3 Config DEBUG ===");
+        log.info("@Value endpoint: {}", endpoint);
+        log.info("@Value region: {}", region);
+        log.info("Environment AWS_S3_ENDPOINT: {}", System.getenv("AWS_S3_ENDPOINT"));
+        log.info("Environment AWS_S3_REGION: {}", System.getenv("AWS_S3_REGION"));
+        log.info("Final endpoint used: {}", endpoint);
+        log.info("Final region used: {}", region);
+        log.info("=======================");
         
         this.bucketName = bucketName;
         this.s3Client = S3Client.builder()
