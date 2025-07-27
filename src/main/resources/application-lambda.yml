@@ -1,0 +1,16 @@
+spring:
+  main:
+    web-application-type: servlet
+  cloud:
+    function:
+      web:
+        path-prefix: /api
+
+# Disable embedded web server when running in Lambda
+server:
+  port: -1
+
+logging:
+  level:
+    de.bas.bodo.woodle.infrastructure.S3PollStorageService: INFO
+    root: INFO
