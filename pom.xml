@@ -154,7 +154,7 @@
 						<configuration>
 							<sourceDirectory>${project.basedir}/src/main/jte</sourceDirectory>
 							<contentType>Html</contentType>
-							<binaryStaticContent>true</binaryStaticContent>
+							<staticContent>false</staticContent>
 							<targetResourceDirectory>${project.build.outputDirectory}</targetResourceDirectory>
 						</configuration>
 					</execution>
