@@ -93,7 +93,7 @@
             <form data-test-schedule-event-step3-form method="post" action="/schedule-event-step3/${uuid}">
                 <div class="form-group">
                     <label for="expiryDate">Expiry Date:</label>
-                    <input type="date" id="expiryDate" name="expiryDate" 
+                    <input type="date" id="expiryDate" name="expiryDate" data-test="expiry-date-field"
                            value="${pollData != null && pollData.get("expiryDate") != null ? pollData.get("expiryDate") : ""}"
                            required>
                 </div>

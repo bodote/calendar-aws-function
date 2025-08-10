@@ -173,7 +173,7 @@ public class WoodleFormsController {
         // Add data to model for the template
         model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
-        
+
         // Add proposal count for dynamic field rendering
         String proposalCountStr = pollData.get("proposalCount");
         int proposalCount = (proposalCountStr != null) ? Integer.parseInt(proposalCountStr) : 1;
@@ -186,7 +186,7 @@ public class WoodleFormsController {
     public String submitScheduleEventStep2(
             @PathVariable String uuid,
             @RequestParam Map<String, String> allParams) {
-        
+
         String action = allParams.get("action");
 
         // Retrieve existing poll data
@@ -202,7 +202,7 @@ public class WoodleFormsController {
         for (Map.Entry<String, String> entry : allParams.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            
+
             // Skip the action parameter and only store non-empty values
             if (!"action".equals(key) && value != null && !value.isEmpty()) {
                 updatedData.put(key, value);
@@ -251,18 +251,23 @@ public class WoodleFormsController {
             return "redirect:/schedule-event?uuidNotFound=true";
         }
 
-        // Default expiryDate if not already set but eventDate present
-        if (!pollData.containsKey("expiryDate") && pollData.get("eventDate") != null) {
+        // Create a mutable copy for view rendering to avoid mutating immutable storage
+        // maps
+        java.util.Map<String, String> pollDataForView = new java.util.HashMap<>();
+        pollDataForView.putAll(pollData);
+
+        // Default expiryDate for view if not already set but eventDate present
+        if (!pollDataForView.containsKey("expiryDate") && pollDataForView.get("eventDate") != null) {
             try {
-                java.time.LocalDate start = java.time.LocalDate.parse(pollData.get("eventDate"));
+                java.time.LocalDate start = java.time.LocalDate.parse(pollDataForView.get("eventDate"));
                 java.time.LocalDate expiry = start.plusMonths(3);
-                pollData.put("expiryDate", expiry.toString());
+                pollDataForView.put("expiryDate", expiry.toString());
             } catch (java.time.format.DateTimeParseException ignored) {
                 // ignore invalid date format
             }
         }
 
-        model.addAttribute("pollData", pollData);
+        model.addAttribute("pollData", pollDataForView);
         model.addAttribute("uuid", uuid);
 
         return "schedule-event-step3";
@@ -302,16 +307,16 @@ public class WoodleFormsController {
     public String eventSummary(@PathVariable String uuid, Model model) {
         // Retrieve poll data from storage
         Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
-        
+
         // If UUID not found, return 404 (will be handled by Spring)
         if (pollData == null) {
             return "redirect:/schedule-event?uuidNotFound=true";
         }
-        
+
         // Add data to model for template
         model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
-        
+
         return "event-summary";
     }
 }

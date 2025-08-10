@@ -114,6 +114,38 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
+    <profiles>
+        <profile>
+            <id>e2e</id>
+            <properties>
+                <spring.profiles.active>e2e</spring.profiles.active>
+                <maven.test.skip>false</maven.test.skip>
+                <skipTests>false</skipTests>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.microsoft.playwright</groupId>
+                    <artifactId>playwright</artifactId>
+                    <version>1.45.0</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                            <includes>
+                                <include>**/*E2E*.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

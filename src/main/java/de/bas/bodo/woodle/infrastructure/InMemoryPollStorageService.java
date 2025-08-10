@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import de.bas.bodo.woodle.service.PollStorageService;
@@ -14,6 +15,7 @@ import de.bas.bodo.woodle.service.PollStorageService;
  * This serves as a fallback when S3 is not available.
  */
 @Service
+@Profile({ "test", "e2e" })
 @ConditionalOnMissingBean(type = "de.bas.bodo.woodle.infrastructure.S3PollStorageService")
 public class InMemoryPollStorageService implements PollStorageService {
 
