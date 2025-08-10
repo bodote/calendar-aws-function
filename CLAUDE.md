@@ -120,6 +120,23 @@ sam deploy --guided
 - Use Jsoup selectors like `doc.select("div[data-test='event-details']")`
 - Prefer HTTP status `303` for POST-redirect-GET patterns
 
+### End-to-End Tests (Playwright)
+- Playwright (Java) drives a real browser against a running Spring Boot app (`@SpringBootTest(webEnvironment = RANDOM_PORT)`).
+- Tests live under `src/test/java` and follow the `*E2E*.java` naming (e.g., `E2ECreateEventTest`). They use `@ActiveProfiles("e2e")` and are excluded from default test runs.
+- The Maven `e2e` profile adds the Playwright dependency and configures Surefire to only include `**/*E2E*.java`.
+- Run E2E tests:
+```bash
+./mvnw -Pe2e test
+```
+- Notes: first run may download Playwright browsers; artifacts are written under `target/`.
+- Trace viewer:
+  - Trace is saved to `target/trace.zip`.
+  - Open it with the Playwright trace viewer:
+    ```bash
+    npx playwright show-trace target/trace.zip
+    ```
+  - Recorded videos per page are saved under `target/e2e-videos/`.
+
 ## Development Configuration
 
 **Profiles and Properties:**

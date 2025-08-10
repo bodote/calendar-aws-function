@@ -11,10 +11,13 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.Tracing;
 import java.time.LocalDate;
+import java.nio.file.Paths;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("e2e")
@@ -26,15 +29,30 @@ public class E2ECreateEventTest {
 
     private static Playwright playwright;
     private static Browser browser;
+    private static BrowserContext context;
 
     @BeforeAll
     static void setup() {
         playwright = Playwright.create();
         browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        context = browser.newContext(new Browser.NewContextOptions()
+                .setRecordVideoDir(Paths.get("target/e2e-videos")));
+        context.tracing().start(new Tracing.StartOptions()
+                .setScreenshots(true)
+                .setSnapshots(true)
+                .setSources(true));
     }
 
     @AfterAll
     static void teardown() {
+        if (context != null) {
+            try {
+                context.tracing().stop(new Tracing.StopOptions()
+                        .setPath(Paths.get("target/trace.zip")));
+            } catch (RuntimeException ignored) {
+            }
+            context.close();
+        }
         if (browser != null)
             browser.close();
         if (playwright != null)
@@ -44,7 +62,7 @@ public class E2ECreateEventTest {
     @Test
     void happy_path_creates_event_and_displays_summary() {
         String baseUrl = "http://localhost:" + port;
-        Page page = browser.newPage();
+        Page page = context.newPage();
 
         page.navigate(baseUrl + "/schedule-event");
         assertThat(page.title()).contains("Schedule Event");
