@@ -1,0 +1,122 @@
+{
+  "className": "de.bas.bodo.woodle.EventJGivenTest",
+  "name": "Event J Given",
+  "scenarios": [
+    {
+      "className": "de.bas.bodo.woodle.EventJGivenTest",
+      "testMethodName": "should_display_event_summary_for_valid_uuid",
+      "description": "should display event summary for valid uuid",
+      "tagIds": [],
+      "explicitParameters": [],
+      "derivedParameters": [],
+      "scenarioCases": [
+        {
+          "caseNr": 1,
+          "steps": [
+            {
+              "name": "set poll storage service",
+              "words": [
+                {
+                  "value": "Given",
+                  "isIntroWord": true
+                },
+                {
+                  "value": "set poll storage service"
+                },
+                {
+                  "value": "de.bas.bodo.woodle.service.PollStorageService#0",
+                  "argumentInfo": {
+                    "argumentName": "pollStorageService",
+                    "formattedValue": "de.bas.bodo.woodle.service.PollStorageService#0"
+                  }
+                }
+              ],
+              "status": "PASSED",
+              "durationInNanos": 10238917,
+              "depth": 0,
+              "parentFailed": false
+            },
+            {
+              "name": "set mock mvc",
+              "words": [
+                {
+                  "value": "When",
+                  "isIntroWord": true
+                },
+                {
+                  "value": "set mock mvc"
+                },
+                {
+                  "value": "org.springframework.test.web.servlet.MockMvc@3ef0e576",
+                  "argumentInfo": {
+                    "argumentName": "mockMvc",
+                    "formattedValue": "org.springframework.test.web.servlet.MockMvc@3ef0e576"
+                  }
+                }
+              ],
+              "status": "PASSED",
+              "durationInNanos": 417125,
+              "depth": 0,
+              "parentFailed": false
+            },
+            {
+              "name": "a poll with uuid exists",
+              "words": [
+                {
+                  "value": "Given",
+                  "isIntroWord": true
+                },
+                {
+                  "value": "a poll with uuid exists"
+                }
+              ],
+              "status": "PASSED",
+              "durationInNanos": 3275958,
+              "depth": 0,
+              "parentFailed": false
+            },
+            {
+              "name": "the user accesses the event page",
+              "words": [
+                {
+                  "value": "When",
+                  "isIntroWord": true
+                },
+                {
+                  "value": "the user accesses the event page"
+                }
+              ],
+              "status": "PASSED",
+              "durationInNanos": 474382208,
+              "depth": 0,
+              "parentFailed": false
+            },
+            {
+              "name": "the event summary is displayed with the correct data",
+              "words": [
+                {
+                  "value": "Then",
+                  "isIntroWord": true
+                },
+                {
+                  "value": "the event summary is displayed with the correct data"
+                }
+              ],
+              "status": "PASSED",
+              "durationInNanos": 1834542,
+              "depth": 0,
+              "parentFailed": false
+            }
+          ],
+          "explicitArguments": [],
+          "derivedArguments": [],
+          "status": "SUCCESS",
+          "durationInNanos": 501027708
+        }
+      ],
+      "casesAsTable": false,
+      "durationInNanos": 501027708
+    }
+  ],
+  "tagMap": {}
+}

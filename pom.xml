@@ -165,7 +165,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
                     <testExcludes>
-                        <exclude>**/EventJGivenTest.java</exclude>
+                        <exclude>**/*E2E*.java</exclude>
                     </testExcludes>
 					<annotationProcessorPaths>
 						<path>
