@@ -61,7 +61,46 @@ But the Spring Boot application in the Lambda is still trying to connect to `loc
 # Start LocalStack
 docker-compose up -d localstack
 
-# Build and test Lambda (current approach)
+# Build the SAM app
 sam build
-DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock sam local invoke WoodleLambdaFunction --env-vars env.json --docker-network calendar-aws-function_default --event api-test.json
+
+# Option A: Run full local API on the same Docker network as LocalStack (preferred)
+# Note: Change the port if 3000 is busy (e.g. --port 3001)
+DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock \
+  sam local start-api \
+  --docker-network calendar-aws-function_default \
+  --env-vars env.json \
+  --port 3000
+
+# Then test endpoints via API Gateway emulation
+curl -s http://127.0.0.1:3000/schedule-event | head -n 20
+curl -s -X POST http://127.0.0.1:3000/schedule-event \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data "yourName=Test&emailAddress=test%40example.com&activityTitle=Demo&description=Check+S3" -i
+
+# Verify S3 write in LocalStack
+aws --endpoint-url=http://localhost:4566 s3 ls s3://de.bas.bodo --recursive
+
+# Option B: Single Lambda invocation with correct API Gateway proxy events
+DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock \
+  sam local invoke WoodleLambdaFunction \
+  --env-vars env.json \
+  --docker-network calendar-aws-function_default \
+  --event events/get-schedule-event.json
+
+DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock \
+  sam local invoke WoodleLambdaFunction \
+  --env-vars env.json \
+  --docker-network calendar-aws-function_default \
+  --event events/post-schedule-event.json
 ```
+
+### Troubleshooting
+
+- InvalidRequestEventException: Ensure you use an API Gateway proxy-shaped event. The minimal samples
+  `api-test.json` and `simple-test.json` are not valid. Use files under `events/` created for this.
+- Port already in use (3000):
+  - Find process: `lsof -nP -iTCP:3000 -sTCP:LISTEN`
+  - Stop it or use another port: add `--port 3001` to `sam local start-api` and call `http://127.0.0.1:3001`.
+- LocalStack connectivity from Lambda: `env.json` sets `AWS_S3_ENDPOINT` to `http://woodle-localstack:4566`
+  so the Lambda container can reach LocalStack by hostname over the shared Docker network.

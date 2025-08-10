@@ -1,0 +1,28 @@
+{
+    "resource": "/{proxy+}",
+    "path": "/schedule-event",
+    "httpMethod": "POST",
+    "headers": {
+        "Host": "localhost",
+        "X-Forwarded-Proto": "http",
+        "X-Forwarded-Port": "3000",
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "multiValueHeaders": {},
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+        "path": "/schedule-event",
+        "stage": "Prod",
+        "requestId": "test",
+        "requestTimeEpoch": 0,
+        "identity": {
+            "sourceIp": "127.0.0.1",
+            "userAgent": "curl/8.x"
+        }
+    },
+    "body": "yourName=Test+User&emailAddress=test%40example.com&activityTitle=Demo&description=Check+S3",
+    "isBase64Encoded": false
+}

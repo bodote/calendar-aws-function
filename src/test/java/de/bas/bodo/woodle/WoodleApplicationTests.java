@@ -1,5 +1,7 @@
 package de.bas.bodo.woodle;
 
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -9,14 +11,13 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
-
 @SpringBootTest
 @Testcontainers
 class WoodleApplicationTests {
 
     @Container
-    static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"))
+    static LocalStackContainer localstack = new LocalStackContainer(
+            DockerImageName.parse("localstack/localstack:3.8.1"))
             .withServices(S3);
 
     @DynamicPropertySource

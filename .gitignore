@@ -40,3 +40,4 @@ doc/tmp_next_command.md
 
 ### Environment Files ###
 .env
+/tmp/
