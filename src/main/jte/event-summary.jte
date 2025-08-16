@@ -1,5 +1,8 @@
 @param java.util.Map<String, String> pollData
 @param String uuid
+@param String staticBaseUrl = ""
+@param String apiStage = ""
+@param jakarta.servlet.http.HttpServletRequest request
 
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +75,11 @@
 <body>
     <div class="container">
         <header>
-            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @if(staticBaseUrl != null && !staticBaseUrl.isEmpty())
+                <img src="${staticBaseUrl}/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @else
+                <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @endif
             <h1>Event Summary</h1>
         </header>
         <main>
@@ -115,8 +122,8 @@
             
             <div class="shareable-url" data-test="shareable-url">
                 <div class="detail-label">Shareable Event URL:</div>
-                <div class="detail-value">http://localhost:8080/event/${uuid}</div>
-                <input type="text" class="url-input" value="http://localhost:8080/event/${uuid}" readonly data-test="event-url">
+                <div class="detail-value">${request.getRequestURL().toString().replace(request.getRequestURI(), "")}${apiStage != null && !apiStage.isEmpty() ? "/" + apiStage : ""}/event/${uuid}</div>
+                <input type="text" class="url-input" value="${request.getRequestURL().toString().replace(request.getRequestURI(), "")}${apiStage != null && !apiStage.isEmpty() ? "/" + apiStage : ""}/event/${uuid}" readonly data-test="event-url">
             </div>
         </main>
     </div>

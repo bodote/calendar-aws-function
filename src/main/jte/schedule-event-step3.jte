@@ -1,5 +1,8 @@
 @param java.util.Map<String, String> pollData = null
 @param String uuid
+@param String staticBaseUrl = ""
+@param String apiStage = ""
+@param jakarta.servlet.http.HttpServletRequest request
 
 <!DOCTYPE html>
 <html lang="en">
@@ -86,11 +89,15 @@
 <body>
     <div class="container">
         <header>
-            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @if(staticBaseUrl != null && !staticBaseUrl.isEmpty())
+                <img src="${staticBaseUrl}/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @else
+                <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @endif
             <h1>Schedule Event - Step 3</h1>
         </header>
         <main>
-            <form data-test-schedule-event-step3-form method="post" action="schedule-event-step3/${uuid}">
+            <form data-test-schedule-event-step3-form method="post" action="${request.getRequestURL().toString().replace(request.getRequestURI(), "")}${apiStage != null && !apiStage.isEmpty() ? "/" + apiStage : ""}/schedule-event-step3/${uuid}">
                 <div class="form-group">
                     <label for="expiryDate">Expiry Date:</label>
                     <input type="date" id="expiryDate" name="expiryDate" data-test="expiry-date-field"

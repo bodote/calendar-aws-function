@@ -1,6 +1,9 @@
 @param java.util.Map<String, String> pollData = null
 @param String uuid = null
 @param String warningMessage = null
+@param String staticBaseUrl = ""
+@param String apiStage = ""
+@param jakarta.servlet.http.HttpServletRequest request
 
 <!DOCTYPE html>
 <html lang="en">
@@ -82,7 +85,11 @@
 <body>
     <div class="container">
         <header>
-            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @if(staticBaseUrl != null && !staticBaseUrl.isEmpty())
+                <img src="${staticBaseUrl}/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @else
+                <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @endif
             <h1>Schedule Event</h1>
         </header>
         <main>
@@ -91,7 +98,7 @@
                 ${warningMessage} and a new UUID will be generated once the user fills the field and clicks "next"
             </div>
             @endif
-            <form data-test-schedule-event-form method="post" action="@if(uuid != null)/schedule-event/${uuid}@else/schedule-event@endif">
+            <form data-test-schedule-event-form method="post" action="@if(uuid != null)${request.getRequestURL().toString().replace(request.getRequestURI(), "")}${apiStage != null && !apiStage.isEmpty() ? "/" + apiStage : ""}/schedule-event/${uuid}@else${request.getRequestURL().toString().replace(request.getRequestURI(), "")}${apiStage != null && !apiStage.isEmpty() ? "/" + apiStage : ""}/schedule-event@endif">
                 <div class="form-group">
                     <label for="yourName">Your name:</label>
                     <input type="text" id="yourName" name="yourName" data-test-your-name-field 

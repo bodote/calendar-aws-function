@@ -27,6 +27,9 @@ public class StreamLambdaHandler implements RequestStreamHandler {
                     .defaultProxy()
                     .springBootApplication(WoodleApplication.class)
                     .buildAndInitialize(); // synchronous init
+            // Note: current aws-serverless-java-container version may not expose
+            // setBinaryMimeTypes.
+            // BinaryMediaTypes is configured in template.yml (Api.BinaryMediaTypes).
         } catch (ContainerInitializationException e) {
             // fail fast – let Lambda retry on a new cold start
             throw new RuntimeException("Could not initialise Spring Boot", e);

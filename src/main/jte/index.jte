@@ -1,3 +1,5 @@
+@param String staticBaseUrl = ""
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +52,11 @@
 <body>
     <div class="container">
         <header>
-            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @if(staticBaseUrl != null && !staticBaseUrl.isEmpty())
+                <img src="${staticBaseUrl}/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @else
+                <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @endif
             <h1>Woodle</h1>
         </header>
         <main>

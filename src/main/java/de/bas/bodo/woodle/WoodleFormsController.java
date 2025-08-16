@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,8 +42,19 @@ public class WoodleFormsController {
     @Value("${aws.s3.force-path-style}")
     private String s3ForcePathStyle;
 
+    @Value("${static.base-url:}")
+    private String staticBaseUrl;
+
+    @Value("${api.stage:}")
+    private String apiStage;
+
     public WoodleFormsController(PollStorageService pollStorageService) {
         this.pollStorageService = pollStorageService;
+    }
+
+    @ModelAttribute("staticBaseUrl")
+    public String exposeStaticBaseUrl() {
+        return staticBaseUrl;
     }
 
     @GetMapping("/")
@@ -138,18 +150,20 @@ public class WoodleFormsController {
     public String scheduleEvent(
             @RequestParam(value = "uuidNotFound", required = false) String uuidNotFound,
             @RequestParam(value = "uuidMissing", required = false) String uuidMissing,
-            Model model) {
+            Model model, HttpServletRequest request) {
         if ("true".equals(uuidNotFound)) {
             model.addAttribute("warningMessage", "UUID not found / Poll not found");
         }
         if ("true".equals(uuidMissing)) {
             model.addAttribute("warningMessage", "Poll id missing");
         }
+        model.addAttribute("request", request);
+        model.addAttribute("apiStage", apiStage);
         return "schedule-event";
     }
 
     @GetMapping("/schedule-event/{uuid}")
-    public String scheduleEventWithUuid(@PathVariable String uuid, Model model) {
+    public String scheduleEventWithUuid(@PathVariable String uuid, Model model, HttpServletRequest request) {
         // Retrieve existing poll data
         Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
 
@@ -161,6 +175,8 @@ public class WoodleFormsController {
         // Add data to model for the template
         model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
+        model.addAttribute("request", request);
+        model.addAttribute("apiStage", apiStage);
 
         return "schedule-event";
     }
@@ -170,7 +186,8 @@ public class WoodleFormsController {
             @RequestParam("yourName") String yourName,
             @RequestParam("emailAddress") String emailAddress,
             @RequestParam("activityTitle") String activityTitle,
-            @RequestParam("description") String description) {
+            @RequestParam("description") String description,
+            HttpServletRequest request) {
 
         // Create form data object
         Map<String, String> formData = new HashMap<>();
@@ -182,8 +199,20 @@ public class WoodleFormsController {
         // Store poll data and get UUID
         String uuid = pollStorageService.storePollData(formData);
 
-        // Redirect to step 2 with UUID in URL
-        String redirect = "redirect:schedule-event-step2/" + uuid;
+        // Build absolute redirect URL for API Gateway stage awareness
+        String hostHeader = request.getHeader("Host");
+        String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        String scheme = (xForwardedProto != null && !xForwardedProto.isEmpty()) ? xForwardedProto : request.getScheme();
+        String host = (hostHeader != null && !hostHeader.isEmpty()) ? hostHeader : request.getServerName();
+
+        String redirect;
+        if ("lambda".equalsIgnoreCase(System.getenv("SPRING_PROFILES_ACTIVE")) && apiStage != null
+                && !apiStage.isEmpty()) {
+            redirect = String.format("redirect:%s://%s/%s/schedule-event-step2/%s", scheme, host, apiStage, uuid);
+        } else {
+            redirect = "redirect:schedule-event-step2/" + uuid;
+        }
+
         log.info("redirect submitScheduleEvent -> {}", redirect);
         return redirect;
     }
@@ -194,7 +223,8 @@ public class WoodleFormsController {
             @RequestParam("yourName") String yourName,
             @RequestParam("emailAddress") String emailAddress,
             @RequestParam("activityTitle") String activityTitle,
-            @RequestParam("description") String description) {
+            @RequestParam("description") String description,
+            HttpServletRequest request) {
 
         // Retrieve existing poll data
         Map<String, String> existingData = pollStorageService.retrievePollData(uuid);
@@ -214,8 +244,20 @@ public class WoodleFormsController {
         // Update existing data with same UUID
         pollStorageService.updatePollData(uuid, updatedData);
 
-        // Redirect to step 2 with UUID in URL
-        String redirect = "redirect:schedule-event-step2/" + uuid;
+        // Build absolute redirect URL for API Gateway stage awareness
+        String hostHeader = request.getHeader("Host");
+        String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        String scheme = (xForwardedProto != null && !xForwardedProto.isEmpty()) ? xForwardedProto : request.getScheme();
+        String host = (hostHeader != null && !hostHeader.isEmpty()) ? hostHeader : request.getServerName();
+
+        String redirect;
+        if ("lambda".equalsIgnoreCase(System.getenv("SPRING_PROFILES_ACTIVE")) && apiStage != null
+                && !apiStage.isEmpty()) {
+            redirect = String.format("redirect:%s://%s/%s/schedule-event-step2/%s", scheme, host, apiStage, uuid);
+        } else {
+            redirect = "redirect:schedule-event-step2/" + uuid;
+        }
+
         log.info("redirect submitScheduleEventWithUuid -> {}", redirect);
         return redirect;
     }
@@ -228,7 +270,7 @@ public class WoodleFormsController {
     }
 
     @GetMapping("/schedule-event-step2/{uuid}")
-    public String scheduleEventStep2(@PathVariable String uuid, Model model) {
+    public String scheduleEventStep2(@PathVariable String uuid, Model model, HttpServletRequest request) {
         // Retrieve existing poll data
         Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
 
@@ -242,6 +284,8 @@ public class WoodleFormsController {
         // Add data to model for the template
         model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
+        model.addAttribute("request", request);
+        model.addAttribute("apiStage", apiStage);
 
         // Add proposal count for dynamic field rendering
         String proposalCountStr = pollData.get("proposalCount");
@@ -254,7 +298,8 @@ public class WoodleFormsController {
     @PostMapping("/schedule-event-step2/{uuid}")
     public String submitScheduleEventStep2(
             @PathVariable String uuid,
-            @RequestParam Map<String, String> allParams) {
+            @RequestParam Map<String, String> allParams,
+            HttpServletRequest request) {
 
         String action = allParams.get("action");
 
@@ -278,6 +323,13 @@ public class WoodleFormsController {
             }
         }
 
+        // Build absolute redirect URL components for API Gateway stage awareness
+        String hostHeader = request.getHeader("Host");
+        String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        String scheme = (xForwardedProto != null && !xForwardedProto.isEmpty()) ? xForwardedProto : request.getScheme();
+        String host = (hostHeader != null && !hostHeader.isEmpty()) ? hostHeader : request.getServerName();
+        boolean isLambda = "lambda".equalsIgnoreCase(System.getenv("SPRING_PROFILES_ACTIVE"));
+
         // Handle special actions before saving general form data
         if ("add-proposal".equals(action)) {
             // Increment proposal count to show additional fields
@@ -285,7 +337,13 @@ public class WoodleFormsController {
             int currentCount = (currentCountStr != null) ? Integer.parseInt(currentCountStr) : 1;
             updatedData.put("proposalCount", String.valueOf(currentCount + 1));
             pollStorageService.updatePollData(uuid, updatedData);
-            String redirect = "redirect:schedule-event-step2/" + uuid;
+
+            String redirect;
+            if (isLambda && apiStage != null && !apiStage.isEmpty()) {
+                redirect = String.format("redirect:%s://%s/%s/schedule-event-step2/%s", scheme, host, apiStage, uuid);
+            } else {
+                redirect = "redirect:schedule-event-step2/" + uuid;
+            }
             log.info("redirect submitScheduleEventStep2 (add-proposal) -> {}", redirect);
             return redirect;
         }
@@ -295,18 +353,34 @@ public class WoodleFormsController {
 
         // Navigation handling
         if ("back".equals(action)) {
-            String redirectBack = "redirect:schedule-event/" + uuid;
+            String redirectBack;
+            if (isLambda && apiStage != null && !apiStage.isEmpty()) {
+                redirectBack = String.format("redirect:%s://%s/%s/schedule-event/%s", scheme, host, apiStage, uuid);
+            } else {
+                redirectBack = "redirect:schedule-event/" + uuid;
+            }
             log.info("redirect submitScheduleEventStep2 (back) -> {}", redirectBack);
             return redirectBack; // back to step 1
         }
         if ("next".equals(action)) {
-            String redirectNext = "redirect:schedule-event-step3/" + uuid;
+            String redirectNext;
+            if (isLambda && apiStage != null && !apiStage.isEmpty()) {
+                redirectNext = String.format("redirect:%s://%s/%s/schedule-event-step3/%s", scheme, host, apiStage,
+                        uuid);
+            } else {
+                redirectNext = "redirect:schedule-event-step3/" + uuid;
+            }
             log.info("redirect submitScheduleEventStep2 (next) -> {}", redirectNext);
             return redirectNext; // forward to step 3
         }
 
         // default stay on step 2
-        String redirectStay = "redirect:schedule-event-step2/" + uuid;
+        String redirectStay;
+        if (isLambda && apiStage != null && !apiStage.isEmpty()) {
+            redirectStay = String.format("redirect:%s://%s/%s/schedule-event-step2/%s", scheme, host, apiStage, uuid);
+        } else {
+            redirectStay = "redirect:schedule-event-step2/" + uuid;
+        }
         log.info("redirect submitScheduleEventStep2 (stay) -> {}", redirectStay);
         return redirectStay;
     }
@@ -322,7 +396,7 @@ public class WoodleFormsController {
     }
 
     @GetMapping("/schedule-event-step3/{uuid}")
-    public String scheduleEventStep3(@PathVariable String uuid, Model model) {
+    public String scheduleEventStep3(@PathVariable String uuid, Model model, HttpServletRequest request) {
         Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
 
         if (pollData == null) {
@@ -350,6 +424,8 @@ public class WoodleFormsController {
 
         model.addAttribute("pollData", pollDataForView);
         model.addAttribute("uuid", uuid);
+        model.addAttribute("request", request);
+        model.addAttribute("apiStage", apiStage);
 
         return "schedule-event-step3";
     }
@@ -358,10 +434,24 @@ public class WoodleFormsController {
     public String submitScheduleEventStep3(
             @PathVariable String uuid,
             @RequestParam(value = "expiryDate", required = false) String expiryDate,
-            @RequestParam(value = "action", required = false) String action) {
+            @RequestParam(value = "action", required = false) String action,
+            HttpServletRequest request) {
+
+        // Build absolute redirect URL components for API Gateway stage awareness
+        String hostHeader = request.getHeader("Host");
+        String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        String scheme = (xForwardedProto != null && !xForwardedProto.isEmpty()) ? xForwardedProto : request.getScheme();
+        String host = (hostHeader != null && !hostHeader.isEmpty()) ? hostHeader : request.getServerName();
+        boolean isLambda = "lambda".equalsIgnoreCase(System.getenv("SPRING_PROFILES_ACTIVE"));
 
         if ("back".equals(action)) {
-            String redirectBack = "redirect:schedule-event-step2/" + uuid;
+            String redirectBack;
+            if (isLambda && apiStage != null && !apiStage.isEmpty()) {
+                redirectBack = String.format("redirect:%s://%s/%s/schedule-event-step2/%s", scheme, host, apiStage,
+                        uuid);
+            } else {
+                redirectBack = "redirect:schedule-event-step2/" + uuid;
+            }
             log.info("redirect submitScheduleEventStep3 (back) -> {}", redirectBack);
             return redirectBack;
         }
@@ -379,19 +469,29 @@ public class WoodleFormsController {
 
         // Handle create-poll action - redirect to event summary
         if ("create-poll".equals(action)) {
-            String redirectCreate = "redirect:event/" + uuid;
+            String redirectCreate;
+            if (isLambda && apiStage != null && !apiStage.isEmpty()) {
+                redirectCreate = String.format("redirect:%s://%s/%s/event/%s", scheme, host, apiStage, uuid);
+            } else {
+                redirectCreate = "redirect:event/" + uuid;
+            }
             log.info("redirect submitScheduleEventStep3 (create-poll) -> {}", redirectCreate);
             return redirectCreate;
         }
 
         // Default: stay on step 3
-        String redirectStay3 = "redirect:schedule-event-step3/" + uuid;
+        String redirectStay3;
+        if (isLambda && apiStage != null && !apiStage.isEmpty()) {
+            redirectStay3 = String.format("redirect:%s://%s/%s/schedule-event-step3/%s", scheme, host, apiStage, uuid);
+        } else {
+            redirectStay3 = "redirect:schedule-event-step3/" + uuid;
+        }
         log.info("redirect submitScheduleEventStep3 (stay) -> {}", redirectStay3);
         return redirectStay3;
     }
 
     @GetMapping("/event/{uuid}")
-    public String eventSummary(@PathVariable String uuid, Model model) {
+    public String eventSummary(@PathVariable String uuid, Model model, HttpServletRequest request) {
         // Retrieve poll data from storage
         Map<String, String> pollData = pollStorageService.retrievePollData(uuid);
 
@@ -405,6 +505,8 @@ public class WoodleFormsController {
         // Add data to model for template
         model.addAttribute("pollData", pollData);
         model.addAttribute("uuid", uuid);
+        model.addAttribute("request", request);
+        model.addAttribute("apiStage", apiStage);
 
         return "event-summary";
     }

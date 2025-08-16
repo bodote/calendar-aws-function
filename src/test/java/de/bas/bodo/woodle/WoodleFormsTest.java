@@ -986,10 +986,10 @@ class WoodleFormsTest extends
                         String htmlContent = result.andReturn().getResponse().getContentAsString();
                         Document doc = Jsoup.parse(htmlContent);
 
-                        String expectedUrl = "http://localhost:8080/event/" + uuid;
+                        // Check that shareable URL contains the UUID and correct path
                         assertThat(doc.select("div[data-test='shareable-url']").text())
                                         .as("Event summary should display shareable URL")
-                                        .contains(expectedUrl);
+                                        .contains("/event/" + uuid);
 
                         return self();
                 }

@@ -1,6 +1,9 @@
 @param java.util.Map<String, String> pollData = null
 @param String uuid
 @param int proposalCount = 1
+@param String staticBaseUrl = ""
+@param String apiStage = ""
+@param jakarta.servlet.http.HttpServletRequest request
 
 <!DOCTYPE html>
 <html lang="en">
@@ -111,7 +114,11 @@
 <body>
     <div class="container">
         <header>
-            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @if(staticBaseUrl != null && !staticBaseUrl.isEmpty())
+                <img src="${staticBaseUrl}/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @else
+                <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            @endif
             <h1>Schedule Event - Step 2</h1>
         </header>
         <main>
@@ -120,7 +127,7 @@
                 <p>Organizer: <strong>${pollData.get("name")}</strong></p>
             @endif
             
-            <form data-test-schedule-event-step2-form method="post" action="schedule-event-step2/${uuid}">
+            <form data-test-schedule-event-step2-form method="post" action="${request.getRequestURL().toString().replace(request.getRequestURI(), "")}${apiStage != null && !apiStage.isEmpty() ? "/" + apiStage : ""}/schedule-event-step2/${uuid}">
                 @for(int i = 1; i <= proposalCount; i++)
                     <div class="form-group">
                         @if(i == 1)
@@ -166,7 +173,11 @@
                 @endfor
                 
                 <button type="submit" name="action" value="add-proposal" class="add-proposal-button" data-test="add-proposal-button">
-                    <img src="Plus-Symbol-Transparent-small.png" alt="+" style="height: 20px; width: 20px;">
+                    @if(staticBaseUrl != null && !staticBaseUrl.isEmpty())
+                        <img src="${staticBaseUrl}/Plus-Symbol-Transparent-small.png" alt="+" style="height: 20px; width: 20px;">
+                    @else
+                        <img src="Plus-Symbol-Transparent-small.png" alt="+" style="height: 20px; width: 20px;">
+                    @endif
                 </button>
                 
                 <div class="navigation">

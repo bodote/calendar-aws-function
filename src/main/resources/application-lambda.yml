@@ -6,6 +6,12 @@ spring:
     function:
       web:
         path-prefix: /
+  web:
+    resources:
+      add-mappings: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 # Configure for Lambda environment - don't start embedded server
 server:
@@ -24,6 +30,9 @@ gg:
   jte:
     development-mode: false
     use-precompiled-templates: true
+  
+static:
+  base-url: ${STATIC_BASE_URL:}
 
 # AWS S3 Configuration for Lambda (runtime will use execution role; do NOT set keys)
 aws:
