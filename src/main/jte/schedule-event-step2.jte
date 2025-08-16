@@ -111,7 +111,7 @@
 <body>
     <div class="container">
         <header>
-            <img src="/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
             <h1>Schedule Event - Step 2</h1>
         </header>
         <main>
@@ -120,7 +120,7 @@
                 <p>Organizer: <strong>${pollData.get("name")}</strong></p>
             @endif
             
-            <form data-test-schedule-event-step2-form method="post" action="/schedule-event-step2/${uuid}">
+            <form data-test-schedule-event-step2-form method="post" action="schedule-event-step2/${uuid}">
                 @for(int i = 1; i <= proposalCount; i++)
                     <div class="form-group">
                         @if(i == 1)
@@ -166,7 +166,7 @@
                 @endfor
                 
                 <button type="submit" name="action" value="add-proposal" class="add-proposal-button" data-test="add-proposal-button">
-                    <img src="/Plus-Symbol-Transparent-small.png" alt="+" style="height: 20px; width: 20px;">
+                    <img src="Plus-Symbol-Transparent-small.png" alt="+" style="height: 20px; width: 20px;">
                 </button>
                 
                 <div class="navigation">

@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
-
-import org.mockito.ArgumentCaptor;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -21,6 +18,7 @@ import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -205,7 +203,8 @@ class WoodleFormsTest extends
                 final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
 
                 given().the_application_is_running_with_mock_mvc(mockMvc)
-                                .and().the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
+                                .and()
+                                .the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
                 when().the_user_visits_the_event_summary_page(TEST_UUID);
                 then().the_event_summary_page_is_displayed()
                                 .and().the_summary_contains_all_form_data_from_all_steps()
@@ -217,7 +216,8 @@ class WoodleFormsTest extends
                 final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
 
                 given().the_application_is_running_with_mock_mvc(mockMvc)
-                                .and().the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
+                                .and()
+                                .the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
                 when().the_user_clicks_create_poll_button_on_step3(TEST_UUID);
                 then().the_user_is_redirected_to_event_summary_page(TEST_UUID);
         }
@@ -227,7 +227,8 @@ class WoodleFormsTest extends
                 final String TEST_UUID = "12345678-1234-1234-1234-123456789012";
 
                 given().the_application_is_running_with_mock_mvc(mockMvc)
-                                .and().the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
+                                .and()
+                                .the_poll_storage_service_returns_complete_event_data(pollStorageService, TEST_UUID);
                 when().the_user_clicks_create_poll_button_without_action_on_step3(TEST_UUID);
                 then().the_user_is_redirected_to_event_summary_page(TEST_UUID);
         }
@@ -261,14 +262,14 @@ class WoodleFormsTest extends
                         initialData.put("email", "john.doe@example.com");
                         initialData.put("activityTitle", "Team Meeting");
                         initialData.put("description", "Weekly team sync meeting");
-                        
+
                         // Use a mutable map to simulate storage that can be updated
                         Map<String, String> storageMap = new HashMap<>(initialData);
 
                         // Mock to return current state of storage
-                        Mockito.when(pollStorageService.retrievePollData(uuid)).thenAnswer(invocation -> 
-                                new HashMap<>(storageMap));
-                        
+                        Mockito.when(pollStorageService.retrievePollData(uuid))
+                                        .thenAnswer(invocation -> new HashMap<>(storageMap));
+
                         // Mock to update storage when updatePollData is called
                         Mockito.doAnswer(invocation -> {
                                 String uuidArg = invocation.getArgument(0);
@@ -517,36 +518,41 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_clicks_create_poll_button_on_step3(String uuid) throws Exception {
+                public WhenUserVisitsIndexPage the_user_clicks_create_poll_button_on_step3(String uuid)
+                                throws Exception {
                         result = mockMvc.perform(post("/schedule-event-step3/" + uuid)
                                         .param("action", "create-poll"));
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_clicks_create_poll_button_without_action_on_step3(String uuid) throws Exception {
+                public WhenUserVisitsIndexPage the_user_clicks_create_poll_button_without_action_on_step3(String uuid)
+                                throws Exception {
                         result = mockMvc.perform(post("/schedule-event-step3/" + uuid)
                                         .param("action", "create-poll"));
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_clicks_add_proposal_button_on_step2(String uuid) throws Exception {
+                public WhenUserVisitsIndexPage the_user_clicks_add_proposal_button_on_step2(String uuid)
+                                throws Exception {
                         // First perform the POST action
                         result = mockMvc.perform(post("/schedule-event-step2/" + uuid)
                                         .param("action", "add-proposal"));
-                        
+
                         // Follow the redirect to get the updated page
                         String redirectUrl = result.andReturn().getResponse().getRedirectedUrl();
                         if (redirectUrl != null) {
-                                result = mockMvc.perform(get(redirectUrl));
+                                String path = redirectUrl.startsWith("/") ? redirectUrl : "/" + redirectUrl;
+                                result = mockMvc.perform(get(path));
                         }
                         return self();
                 }
 
-                public WhenUserVisitsIndexPage the_user_adds_second_proposal_and_fills_data(String uuid) throws Exception {
+                public WhenUserVisitsIndexPage the_user_adds_second_proposal_and_fills_data(String uuid)
+                                throws Exception {
                         // First add a second proposal
                         result = mockMvc.perform(post("/schedule-event-step2/" + uuid)
                                         .param("action", "add-proposal"));
-                        
+
                         // Then submit with data for both proposals
                         result = mockMvc.perform(post("/schedule-event-step2/" + uuid)
                                         .param("action", "next")
@@ -604,14 +610,14 @@ class WoodleFormsTest extends
 
                         String linkHref = doc.select("a[data-test-schedule-event-button]").attr("href");
                         assertThat(linkHref)
-                                        .as("Schedule Event button should link to /schedule-event")
-                                        .isEqualTo("/schedule-event");
+                                        .as("Schedule Event button should link to schedule-event (relative)")
+                                        .isEqualTo("schedule-event");
                         return self();
                 }
 
                 public ThenIndexPageIsDisplayed the_user_is_redirected_to_index_html() throws Exception {
                         result.andExpect(status().isFound())
-                                        .andExpect(view().name("redirect:/index.html"));
+                                        .andExpect(view().name("redirect:index.html"));
                         return self();
                 }
 
@@ -696,8 +702,8 @@ class WoodleFormsTest extends
                         // Verify that the redirect URL contains the expected UUID
                         String redirectUrl = result.andReturn().getResponse().getRedirectedUrl();
                         assertThat(redirectUrl)
-                                        .as("Redirect URL should contain the expected UUID")
-                                        .isEqualTo("/schedule-event-step2/" + expectedUuid);
+                                        .as("Redirect URL should contain the expected UUID (relative)")
+                                        .isEqualTo("schedule-event-step2/" + expectedUuid);
                         return self();
                 }
 
@@ -737,7 +743,8 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_schedule_event_step2_form_with_all_required_fields_is_displayed(int timeFieldCount)
+                public ThenIndexPageIsDisplayed the_schedule_event_step2_form_with_all_required_fields_is_displayed(
+                                int timeFieldCount)
                                 throws Exception {
                         result.andExpect(status().isOk())
                                         .andExpect(view().name("schedule-event-step2"));
@@ -818,7 +825,7 @@ class WoodleFormsTest extends
                         // First verify that the form submission redirected to step 2
                         result.andExpect(status().isFound())
                                         .andExpect(view().name(
-                                                        "redirect:/schedule-event-step2/" + uuid));
+                                                        "redirect:schedule-event-step2/" + uuid));
 
                         // Now make a separate request to step 2 to verify the data is preserved
                         ResultActions step2Result = mockMvc
@@ -853,7 +860,7 @@ class WoodleFormsTest extends
                         // First verify that the form submission redirected to step 1
                         result.andExpect(status().isFound())
                                         .andExpect(view().name(
-                                                        "redirect:/schedule-event/" + uuid));
+                                                        "redirect:schedule-event/" + uuid));
 
                         // Now make a separate request to step 1 to verify the data is preserved
                         ResultActions step1Result = mockMvc
@@ -908,7 +915,7 @@ class WoodleFormsTest extends
                 public ThenIndexPageIsDisplayed the_user_is_redirected_to_schedule_event_without_uuid()
                                 throws Exception {
                         result.andExpect(status().isFound())
-                                        .andExpect(view().name("redirect:/schedule-event?uuidNotFound=true"));
+                                        .andExpect(view().name("redirect:schedule-event?uuidNotFound=true"));
 
                         // Follow the redirect to test the content
                         result = mockMvc.perform(get("/schedule-event?uuidNotFound=true"));
@@ -987,9 +994,10 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_user_is_redirected_to_event_summary_page(String uuid) throws Exception {
+                public ThenIndexPageIsDisplayed the_user_is_redirected_to_event_summary_page(String uuid)
+                                throws Exception {
                         result.andExpect(status().is3xxRedirection())
-                                        .andExpect(redirectedUrl("/event/" + uuid));
+                                        .andExpect(redirectedUrl("event/" + uuid));
                         return self();
                 }
 
@@ -1001,7 +1009,9 @@ class WoodleFormsTest extends
                                         .as("Add proposal (+) button should be present")
                                         .isEqualTo(1);
 
-                        assertThat(doc.select("button[data-test='add-proposal-button'] img[src*='Plus-Symbol-Transparent-small.png']").size())
+                        assertThat(doc.select(
+                                        "button[data-test='add-proposal-button'] img[src*='Plus-Symbol-Transparent-small.png']")
+                                        .size())
                                         .as("Add proposal button should contain plus symbol image")
                                         .isEqualTo(1);
                         return self();
@@ -1019,7 +1029,8 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_date_time_fields_are_displayed_for_proposal_count(int proposalCount) throws Exception {
+                public ThenIndexPageIsDisplayed the_date_time_fields_are_displayed_for_proposal_count(int proposalCount)
+                                throws Exception {
                         String htmlContent = result.andReturn().getResponse().getContentAsString();
                         Document doc = Jsoup.parse(htmlContent);
 
@@ -1027,8 +1038,10 @@ class WoodleFormsTest extends
                         for (int i = 1; i <= proposalCount; i++) {
                                 String dateName = (i == 1) ? "eventDate" : "eventDate" + i;
                                 String dateTestAttr = (i == 1) ? "date-field" : "date-field-" + i;
-                                
-                                assertThat(doc.select("input[name='" + dateName + "'][data-test='" + dateTestAttr + "']").size())
+
+                                assertThat(doc.select(
+                                                "input[name='" + dateName + "'][data-test='" + dateTestAttr + "']")
+                                                .size())
                                                 .as("Proposal " + i + " date field should be present")
                                                 .isEqualTo(1);
 
@@ -1036,8 +1049,9 @@ class WoodleFormsTest extends
                                 for (int j = 1; j <= 3; j++) {
                                         String timeName = (i == 1) ? "timeSlot" + j : "timeSlot" + i + "_" + j;
                                         String timeTestAttr = (i == 1) ? "time-field" + j : "time-field-" + i + "-" + j;
-                                        
-                                        assertThat(doc.select("input[name='" + timeName + "'][data-test='" + timeTestAttr + "']").size())
+
+                                        assertThat(doc.select("input[name='" + timeName + "'][data-test='"
+                                                        + timeTestAttr + "']").size())
                                                         .as("Proposal " + i + " time slot " + j + " should be present")
                                                         .isEqualTo(1);
                                 }
@@ -1046,25 +1060,27 @@ class WoodleFormsTest extends
                         return self();
                 }
 
-                public ThenIndexPageIsDisplayed the_dynamic_proposal_data_is_persisted_in_storage(String uuid) throws Exception {
+                public ThenIndexPageIsDisplayed the_dynamic_proposal_data_is_persisted_in_storage(String uuid)
+                                throws Exception {
                         // Verify that the storage service was called with the dynamic field data
                         ArgumentCaptor<Map<String, String>> dataCaptor = ArgumentCaptor.forClass(Map.class);
-                        Mockito.verify(pollStorageService, Mockito.atLeastOnce()).updatePollData(eq(uuid), dataCaptor.capture());
-                        
+                        Mockito.verify(pollStorageService, Mockito.atLeastOnce()).updatePollData(eq(uuid),
+                                        dataCaptor.capture());
+
                         Map<String, String> savedData = dataCaptor.getValue();
-                        
+
                         // Verify original proposal data was saved
                         assertThat(savedData.get("eventDate")).isEqualTo("2024-01-15");
                         assertThat(savedData.get("timeSlot1")).isEqualTo("10:00");
                         assertThat(savedData.get("timeSlot2")).isEqualTo("14:00");
                         assertThat(savedData.get("timeSlot3")).isEqualTo("16:00");
-                        
+
                         // Verify second proposal data was saved
                         assertThat(savedData.get("eventDate2")).isEqualTo("2024-01-16");
                         assertThat(savedData.get("timeSlot2_1")).isEqualTo("09:00");
                         assertThat(savedData.get("timeSlot2_2")).isEqualTo("13:00");
                         assertThat(savedData.get("timeSlot2_3")).isEqualTo("17:00");
-                        
+
                         return self();
                 }
         }

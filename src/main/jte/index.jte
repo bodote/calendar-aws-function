@@ -50,11 +50,11 @@
 <body>
     <div class="container">
         <header>
-            <img src="/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
             <h1>Woodle</h1>
         </header>
         <main>
-            <a href="/schedule-event" class="button" data-test-schedule-event-button>Schedule Event</a>
+            <a href="schedule-event" class="button" data-test-schedule-event-button>Schedule Event</a>
         </main>
     </div>
 </body>

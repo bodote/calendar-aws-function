@@ -43,7 +43,7 @@ public class WoodleFormsController {
 
     @GetMapping("/")
     public String redirectToIndex() {
-        return "redirect:/index.html";
+        return "redirect:index.html";
     }
 
     @GetMapping("/index.html")
@@ -94,7 +94,7 @@ public class WoodleFormsController {
 
         // If UUID not found, redirect to schedule-event with warning
         if (pollData == null) {
-            return "redirect:/schedule-event?uuidNotFound=true";
+            return "redirect:schedule-event?uuidNotFound=true";
         }
 
         // Add data to model for the template
@@ -122,7 +122,7 @@ public class WoodleFormsController {
         String uuid = pollStorageService.storePollData(formData);
 
         // Redirect to step 2 with UUID in URL
-        return "redirect:/schedule-event-step2/" + uuid;
+        return "redirect:schedule-event-step2/" + uuid;
     }
 
     @PostMapping("/schedule-event/{uuid}")
@@ -152,12 +152,12 @@ public class WoodleFormsController {
         pollStorageService.updatePollData(uuid, updatedData);
 
         // Redirect to step 2 with UUID in URL
-        return "redirect:/schedule-event-step2/" + uuid;
+        return "redirect:schedule-event-step2/" + uuid;
     }
 
     @GetMapping("/schedule-event-step2/")
     public String scheduleEventStep2WithoutUuid() {
-        return "redirect:/schedule-event?uuidNotFound=true";
+        return "redirect:schedule-event?uuidNotFound=true";
     }
 
     @GetMapping("/schedule-event-step2/{uuid}")
@@ -167,7 +167,7 @@ public class WoodleFormsController {
 
         // If UUID not found, redirect to schedule-event with warning
         if (pollData == null) {
-            return "redirect:/schedule-event?uuidNotFound=true";
+            return "redirect:schedule-event?uuidNotFound=true";
         }
 
         // Add data to model for the template
@@ -216,7 +216,7 @@ public class WoodleFormsController {
             int currentCount = (currentCountStr != null) ? Integer.parseInt(currentCountStr) : 1;
             updatedData.put("proposalCount", String.valueOf(currentCount + 1));
             pollStorageService.updatePollData(uuid, updatedData);
-            return "redirect:/schedule-event-step2/" + uuid;
+            return "redirect:schedule-event-step2/" + uuid;
         }
 
         // Update existing data with same UUID (for normal form submissions)
@@ -224,14 +224,14 @@ public class WoodleFormsController {
 
         // Navigation handling
         if ("back".equals(action)) {
-            return "redirect:/schedule-event/" + uuid; // back to step 1
+            return "redirect:schedule-event/" + uuid; // back to step 1
         }
         if ("next".equals(action)) {
-            return "redirect:/schedule-event-step3/" + uuid; // forward to step 3
+            return "redirect:schedule-event-step3/" + uuid; // forward to step 3
         }
 
         // default stay on step 2
-        return "redirect:/schedule-event-step2/" + uuid;
+        return "redirect:schedule-event-step2/" + uuid;
     }
 
     /* ---------------------------- STEP 3 ---------------------------------- */
@@ -239,7 +239,7 @@ public class WoodleFormsController {
     @GetMapping("/schedule-event-step3")
     public String scheduleEventStep3WithoutUuid() {
         // Missing UUID
-        return "redirect:/schedule-event?uuidMissing=true";
+        return "redirect:schedule-event?uuidMissing=true";
     }
 
     @GetMapping("/schedule-event-step3/{uuid}")
@@ -248,7 +248,7 @@ public class WoodleFormsController {
 
         if (pollData == null) {
             // Unknown UUID
-            return "redirect:/schedule-event?uuidNotFound=true";
+            return "redirect:schedule-event?uuidNotFound=true";
         }
 
         // Create a mutable copy for view rendering to avoid mutating immutable storage
@@ -280,7 +280,7 @@ public class WoodleFormsController {
             @RequestParam(value = "action", required = false) String action) {
 
         if ("back".equals(action)) {
-            return "redirect:/schedule-event-step2/" + uuid;
+            return "redirect:schedule-event-step2/" + uuid;
         }
 
         // Update data with expiry date
@@ -296,11 +296,11 @@ public class WoodleFormsController {
 
         // Handle create-poll action - redirect to event summary
         if ("create-poll".equals(action)) {
-            return "redirect:/event/" + uuid;
+            return "redirect:event/" + uuid;
         }
 
         // Default: stay on step 3
-        return "redirect:/schedule-event-step3/" + uuid;
+        return "redirect:schedule-event-step3/" + uuid;
     }
 
     @GetMapping("/event/{uuid}")

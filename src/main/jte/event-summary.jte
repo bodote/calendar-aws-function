@@ -72,7 +72,7 @@
 <body>
     <div class="container">
         <header>
-            <img src="/woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
+            <img src="woodle-logo.jpeg" alt="Woodle Logo" data-test-woodle-logo>
             <h1>Event Summary</h1>
         </header>
         <main>

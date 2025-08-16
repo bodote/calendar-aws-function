@@ -250,7 +250,7 @@ class WoodleScheduleEventStep3Test extends
 
         public ThenStep3PageIsDisplayed the_user_is_redirected_to_step3(String uuid) throws Exception {
             result.andExpect(status().isFound())
-                    .andExpect(view().name("redirect:/schedule-event-step3/" + uuid));
+                    .andExpect(view().name("redirect:schedule-event-step3/" + uuid));
             return self();
         }
 
@@ -287,14 +287,15 @@ class WoodleScheduleEventStep3Test extends
         /* ---------- Assertions for Acceptance Criterion 3 ---------- */
         public ThenStep3PageIsDisplayed the_user_is_redirected_to_step2(String uuid) throws Exception {
             result.andExpect(status().isFound())
-                    .andExpect(view().name("redirect:/schedule-event-step2/" + uuid));
+                    .andExpect(view().name("redirect:schedule-event-step2/" + uuid));
             return self();
         }
 
         public ThenStep3PageIsDisplayed the_step2_fields_are_pre_filled_with_previous_data() throws Exception {
             // Follow redirect to step 2
             String redirectUrl = result.andReturn().getResponse().getRedirectedUrl();
-            ResultActions step2Result = mockMvc.perform(get(redirectUrl));
+            String path = redirectUrl.startsWith("/") ? redirectUrl : "/" + redirectUrl;
+            ResultActions step2Result = mockMvc.perform(get(path));
             step2Result.andExpect(status().isOk())
                     .andExpect(view().name("schedule-event-step2"));
 
@@ -347,7 +348,7 @@ class WoodleScheduleEventStep3Test extends
         public ThenStep3PageIsDisplayed the_user_is_redirected_to_schedule_event_with_poll_not_found_message()
                 throws Exception {
             result.andExpect(status().isFound())
-                    .andExpect(view().name("redirect:/schedule-event?uuidNotFound=true"));
+                    .andExpect(view().name("redirect:schedule-event?uuidNotFound=true"));
 
             // Follow redirect
             result = mockMvc.perform(get("/schedule-event?uuidNotFound=true"));
@@ -361,7 +362,7 @@ class WoodleScheduleEventStep3Test extends
         public ThenStep3PageIsDisplayed the_user_is_redirected_to_schedule_event_with_poll_id_missing_message()
                 throws Exception {
             result.andExpect(status().isFound())
-                    .andExpect(view().name("redirect:/schedule-event?uuidMissing=true"));
+                    .andExpect(view().name("redirect:schedule-event?uuidMissing=true"));
 
             // Follow redirect
             result = mockMvc.perform(get("/schedule-event?uuidMissing=true"));

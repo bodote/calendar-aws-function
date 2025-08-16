@@ -23,15 +23,17 @@ Resources:
       Architectures:
         - arm64
       CodeUri: ./
+      Policies:
+        - S3CrudPolicy:
+            BucketName: de.bas.bodo-eu-central-1-168474026156
       Environment:
         Variables:
           MAIN_CLASS: de.bas.bodo.woodle.WoodleApplication
           SPRING_PROFILES_ACTIVE: lambda
-          AWS_S3_ENDPOINT: ""
-          AWS_S3_REGION: us-east-1
+          AWS_S3_REGION: eu-central-1
           AWS_S3_ACCESS_KEY: ""
           AWS_S3_SECRET_KEY: ""
-          AWS_S3_BUCKET_NAME: ""
+          AWS_S3_BUCKET_NAME: de.bas.bodo-eu-central-1-168474026156
           AWS_S3_FORCE_PATH_STYLE: true
       Events:
         RootPath:
