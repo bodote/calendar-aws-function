@@ -24,3 +24,13 @@ gg:
   jte:
     development-mode: false
     use-precompiled-templates: true
+
+# AWS S3 Configuration for Lambda (runtime will use execution role; do NOT set keys)
+aws:
+  s3:
+    endpoint: ""            # empty -> use AWS S3 default endpoint
+    region: ${AWS_S3_REGION:eu-central-1}
+    access-key: ""          # credentials should come from IAM role
+    secret-key: ""
+    bucket-name: ${AWS_S3_BUCKET_NAME:de.bas.bodo}
+    force-path-style: false

@@ -62,6 +62,9 @@ sam local start-api \
   --port 3000 \
   --warm-containers EAGER
 
+# The env.json sets SPRING_PROFILES_ACTIVE=localstack so JTE dev mode is used
+# and LocalStack endpoints are applied inside the Lambda container.
+
 # Then test endpoints via API Gateway emulation
 curl -s http://127.0.0.1:3000/schedule-event | head -n 20
 curl -s -X POST http://127.0.0.1:3000/schedule-event \

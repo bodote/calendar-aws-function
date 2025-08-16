@@ -1,0 +1,35 @@
+spring:
+  main:
+    web-application-type: servlet
+    lazy-initialization: true
+  cloud:
+    function:
+      web:
+        path-prefix: /
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    de.bas.bodo.woodle.infrastructure.S3PollStorageService: INFO
+    root: INFO
+
+gg:
+  jte:
+    development-mode: true
+    use-precompiled-templates: false
+
+# Host LocalStack defaults
+aws:
+  s3:
+    endpoint: ${AWS_S3_ENDPOINT:http://localhost:4566}
+    region: ${AWS_S3_REGION:us-east-1}
+    access-key: ${AWS_S3_ACCESS_KEY:test}
+    secret-key: ${AWS_S3_SECRET_KEY:test}
+    bucket-name: ${AWS_S3_BUCKET_NAME:de.bas.bodo}
+    force-path-style: ${AWS_S3_FORCE_PATH_STYLE:true}
+
+

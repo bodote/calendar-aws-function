@@ -1,0 +1,27 @@
+spring:
+  main:
+    web-application-type: servlet
+    lazy-initialization: true
+  cloud:
+    function:
+      web:
+        path-prefix: /
+
+# LocalStack profile: run locally with SAM/LocalStack
+server:
+  port: ${PORT:-8080}
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    de.bas.bodo.woodle.infrastructure.S3PollStorageService: INFO
+    root: INFO
+    org.springframework: INFO
+
+gg:
+  jte:
+    development-mode: false
+    use-precompiled-templates: true
+
+
