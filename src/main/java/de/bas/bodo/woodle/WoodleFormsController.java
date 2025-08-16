@@ -3,6 +3,8 @@ package de.bas.bodo.woodle;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,11 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import de.bas.bodo.woodle.service.PollStorageService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class WoodleFormsController {
 
     private final PollStorageService pollStorageService;
+    private static final Logger log = LoggerFactory.getLogger(WoodleFormsController.class);
 
     @Value("${aws.s3.endpoint}")
     private String s3Endpoint;
@@ -42,8 +46,65 @@ public class WoodleFormsController {
     }
 
     @GetMapping("/")
-    public String redirectToIndex() {
-        return "redirect:index.html";
+    public String redirectToIndex(HttpServletRequest request) {
+        // Build redirect using the raw request URI so the API Gateway stage (e.g.
+        // /Prod)
+        // is preserved whether the incoming URL has a trailing slash or not.
+        String requestUri = request.getRequestURI();
+        String ctx = request.getContextPath();
+        if (requestUri == null || requestUri.isEmpty()) {
+            requestUri = "/";
+        }
+        String base = requestUri.endsWith("/") ? requestUri : requestUri + "/";
+        if (!base.startsWith("/")) {
+            base = "/" + base;
+        }
+        String apiStage = System.getenv("API_STAGE");
+        String target;
+        String targetType;
+        String scheme = request.getHeader("X-Forwarded-Proto");
+        String schemeSource = "X-Forwarded-Proto";
+        if (scheme == null || scheme.isBlank()) {
+            scheme = request.isSecure() ? "https" : "http";
+            schemeSource = request.isSecure() ? "request.isSecure()" : "http-default";
+        }
+        String host = request.getHeader("Host");
+        String hostSource = (host == null || host.isBlank()) ? "<missing>" : "Host";
+
+        if (apiStage != null && !apiStage.isBlank() && host != null && !host.isBlank()) {
+            String stage = apiStage.startsWith("/") ? apiStage.substring(1) : apiStage;
+            target = scheme + "://" + host + "/" + stage + "/index.html";
+            targetType = "absolute";
+        } else {
+            target = base + "index.html";
+            targetType = "relative";
+        }
+
+        // Log request URL, query and headers to inspect what API Gateway forwards
+        StringBuffer requestURL = request.getRequestURL();
+        String queryString = request.getQueryString();
+        String hostHeader = request.getHeader("Host");
+        String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        String xForwardedPath = request.getHeader("X-Forwarded-Path");
+        String xForwardedPrefix = request.getHeader("X-Forwarded-Prefix");
+
+        StringBuilder headersSb = new StringBuilder();
+        java.util.Enumeration<String> headerNames = request.getHeaderNames();
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+                String hn = headerNames.nextElement();
+                headersSb.append(hn).append("=").append(request.getHeader(hn)).append("; ");
+            }
+        }
+
+        log.info(
+                "redirectToIndex: requestUri='{}', contextPath='{}', base='{}', targetType='{}', target='{}', requestURL='{}', query='{}', Host='{}' (src='{}'), X-Forwarded-Proto='{}' (src='{}'), X-Forwarded-For='{}', X-Forwarded-Path='{}', X-Forwarded-Prefix='{}', API_STAGE='{}', allHeaders='{}'",
+                requestUri, ctx, base, targetType, target, requestURL, queryString, hostHeader, hostSource,
+                xForwardedProto, schemeSource, xForwardedFor, xForwardedPath, xForwardedPrefix, apiStage,
+                headersSb.toString());
+
+        return "redirect:" + target;
     }
 
     @GetMapping("/index.html")
@@ -122,7 +183,9 @@ public class WoodleFormsController {
         String uuid = pollStorageService.storePollData(formData);
 
         // Redirect to step 2 with UUID in URL
-        return "redirect:schedule-event-step2/" + uuid;
+        String redirect = "redirect:schedule-event-step2/" + uuid;
+        log.info("redirect submitScheduleEvent -> {}", redirect);
+        return redirect;
     }
 
     @PostMapping("/schedule-event/{uuid}")
@@ -152,12 +215,16 @@ public class WoodleFormsController {
         pollStorageService.updatePollData(uuid, updatedData);
 
         // Redirect to step 2 with UUID in URL
-        return "redirect:schedule-event-step2/" + uuid;
+        String redirect = "redirect:schedule-event-step2/" + uuid;
+        log.info("redirect submitScheduleEventWithUuid -> {}", redirect);
+        return redirect;
     }
 
     @GetMapping("/schedule-event-step2/")
     public String scheduleEventStep2WithoutUuid() {
-        return "redirect:schedule-event?uuidNotFound=true";
+        String redirect = "redirect:schedule-event?uuidNotFound=true";
+        log.info("redirect scheduleEventStep2WithoutUuid -> {}", redirect);
+        return redirect;
     }
 
     @GetMapping("/schedule-event-step2/{uuid}")
@@ -167,7 +234,9 @@ public class WoodleFormsController {
 
         // If UUID not found, redirect to schedule-event with warning
         if (pollData == null) {
-            return "redirect:schedule-event?uuidNotFound=true";
+            String redirectNF = "redirect:schedule-event?uuidNotFound=true";
+            log.info("redirect scheduleEventStep2 (uuid not found) -> {}", redirectNF);
+            return redirectNF;
         }
 
         // Add data to model for the template
@@ -216,7 +285,9 @@ public class WoodleFormsController {
             int currentCount = (currentCountStr != null) ? Integer.parseInt(currentCountStr) : 1;
             updatedData.put("proposalCount", String.valueOf(currentCount + 1));
             pollStorageService.updatePollData(uuid, updatedData);
-            return "redirect:schedule-event-step2/" + uuid;
+            String redirect = "redirect:schedule-event-step2/" + uuid;
+            log.info("redirect submitScheduleEventStep2 (add-proposal) -> {}", redirect);
+            return redirect;
         }
 
         // Update existing data with same UUID (for normal form submissions)
@@ -224,14 +295,20 @@ public class WoodleFormsController {
 
         // Navigation handling
         if ("back".equals(action)) {
-            return "redirect:schedule-event/" + uuid; // back to step 1
+            String redirectBack = "redirect:schedule-event/" + uuid;
+            log.info("redirect submitScheduleEventStep2 (back) -> {}", redirectBack);
+            return redirectBack; // back to step 1
         }
         if ("next".equals(action)) {
-            return "redirect:schedule-event-step3/" + uuid; // forward to step 3
+            String redirectNext = "redirect:schedule-event-step3/" + uuid;
+            log.info("redirect submitScheduleEventStep2 (next) -> {}", redirectNext);
+            return redirectNext; // forward to step 3
         }
 
         // default stay on step 2
-        return "redirect:schedule-event-step2/" + uuid;
+        String redirectStay = "redirect:schedule-event-step2/" + uuid;
+        log.info("redirect submitScheduleEventStep2 (stay) -> {}", redirectStay);
+        return redirectStay;
     }
 
     /* ---------------------------- STEP 3 ---------------------------------- */
@@ -239,7 +316,9 @@ public class WoodleFormsController {
     @GetMapping("/schedule-event-step3")
     public String scheduleEventStep3WithoutUuid() {
         // Missing UUID
-        return "redirect:schedule-event?uuidMissing=true";
+        String redirect = "redirect:schedule-event?uuidMissing=true";
+        log.info("redirect scheduleEventStep3WithoutUuid -> {}", redirect);
+        return redirect;
     }
 
     @GetMapping("/schedule-event-step3/{uuid}")
@@ -248,7 +327,9 @@ public class WoodleFormsController {
 
         if (pollData == null) {
             // Unknown UUID
-            return "redirect:schedule-event?uuidNotFound=true";
+            String redirectNF = "redirect:schedule-event?uuidNotFound=true";
+            log.info("redirect scheduleEventStep3 (uuid not found) -> {}", redirectNF);
+            return redirectNF;
         }
 
         // Create a mutable copy for view rendering to avoid mutating immutable storage
@@ -280,7 +361,9 @@ public class WoodleFormsController {
             @RequestParam(value = "action", required = false) String action) {
 
         if ("back".equals(action)) {
-            return "redirect:schedule-event-step2/" + uuid;
+            String redirectBack = "redirect:schedule-event-step2/" + uuid;
+            log.info("redirect submitScheduleEventStep3 (back) -> {}", redirectBack);
+            return redirectBack;
         }
 
         // Update data with expiry date
@@ -296,11 +379,15 @@ public class WoodleFormsController {
 
         // Handle create-poll action - redirect to event summary
         if ("create-poll".equals(action)) {
-            return "redirect:event/" + uuid;
+            String redirectCreate = "redirect:event/" + uuid;
+            log.info("redirect submitScheduleEventStep3 (create-poll) -> {}", redirectCreate);
+            return redirectCreate;
         }
 
         // Default: stay on step 3
-        return "redirect:schedule-event-step3/" + uuid;
+        String redirectStay3 = "redirect:schedule-event-step3/" + uuid;
+        log.info("redirect submitScheduleEventStep3 (stay) -> {}", redirectStay3);
+        return redirectStay3;
     }
 
     @GetMapping("/event/{uuid}")
@@ -310,7 +397,9 @@ public class WoodleFormsController {
 
         // If UUID not found, return 404 (will be handled by Spring)
         if (pollData == null) {
-            return "redirect:/schedule-event?uuidNotFound=true";
+            String redirect = "redirect:/schedule-event?uuidNotFound=true";
+            log.info("redirect eventSummary (uuid not found) -> {}", redirect);
+            return redirect;
         }
 
         // Add data to model for template

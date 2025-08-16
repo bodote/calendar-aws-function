@@ -617,7 +617,7 @@ class WoodleFormsTest extends
 
                 public ThenIndexPageIsDisplayed the_user_is_redirected_to_index_html() throws Exception {
                         result.andExpect(status().isFound())
-                                        .andExpect(view().name("redirect:index.html"));
+                                        .andExpect(view().name("redirect:/index.html"));
                         return self();
                 }
 

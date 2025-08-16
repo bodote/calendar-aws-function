@@ -59,9 +59,27 @@ Post-deploy
 
 Important configuration
 - Runtime: java21; Architecture: arm64
-- Stage path `/Prod` is required on API Gateway REST API
+- Stage path `/Prod` is required on API Gateway REST API (default stage)
 - S3 bucket and region are injected via environment (`template.yml`)
 - Lambda role has S3CrudPolicy for your bucket
+
+Stage-aware redirects
+- The REST API default stage `Prod` introduces a stage path (`/Prod`). With AWS Serverless Java Container, the stage is not visible in `HttpServletRequest` path.
+- Solution implemented:
+  - The Lambda environment exposes `API_STAGE` (now parameterized via `ApiStageName` in `template.yml`).
+  - `WoodleFormsController` builds absolute redirect URLs using:
+    - scheme from `X-Forwarded-Proto` (fallback to `request.isSecure()`)
+    - host from `Host`
+    - stage from `API_STAGE`
+  - This guarantees correct redirects for both `/Prod` and `/Prod/`.
+
+Change stage name
+- Edit `template.yml` parameter `ApiStageName` (default `Prod`).
+- Deploy with a different stage value:
+  - `sam deploy --no-confirm-changeset --stack-name woodle --region eu-central-1 --capabilities CAPABILITY_IAM --parameter-overrides ApiStageName=v1`
+
+Alternative options
+- Use an HTTP API with `$default` stage (no path segment) or a custom domain with base path mapping to eliminate the stage from paths.
 
 Troubleshooting
 - 403 Forbidden on POST schedule-event:
