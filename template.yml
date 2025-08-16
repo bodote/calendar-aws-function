@@ -20,6 +20,8 @@ Resources:
     Properties:
       Handler: de.bas.bodo.woodle.StreamLambdaHandler
       Runtime: java21
+      Architectures:
+        - arm64
       CodeUri: ./
       Environment:
         Variables:

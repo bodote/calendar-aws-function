@@ -8,9 +8,9 @@
 - Spring Boot app connecting to LocalStack successfully
 - Lambda function starting and Spring Boot initializing
 
-❌ **Issue:** 
-Lambda container cannot reach LocalStack due to Docker networking configuration
+## Notes
 
+The setup now successfully connects the Lambda container to LocalStack over the shared Docker network. If you still observe cold-starts during local invocation, see the `--warm-containers` guidance below.
 ## What We're Trying to Accomplish
 
 Run the Woodle Spring Boot application as a Lambda function locally using:
@@ -29,23 +29,7 @@ Host Machine
 └── Docker Network: calendar-aws-function_default
 ```
 
-## The Problem
-
-The Lambda container environment variables are set to:
-```json
-{
-  "AWS_S3_ENDPOINT": "http://woodle-localstack:4566"
-}
-```
-
-But the Spring Boot application in the Lambda is still trying to connect to `localhost:4566` instead of using the environment variables from `env.json`.
-
-## Next Steps to Resolve
-
-1. **Debug environment variable injection** - Verify env.json variables reach the Spring application
-2. **Fix container networking** - Ensure Lambda container can resolve `woodle-localstack` hostname  
-3. **Alternative approach** - Use host networking or bridge configuration
-4. **Fallback option** - Continue using Option 1 (Spring Boot + LocalStack) for development
+@@
 
 ## Files Involved
 
@@ -66,11 +50,17 @@ sam build
 
 # Option A: Run full local API on the same Docker network as LocalStack (preferred)
 # Note: Change the port if 3000 is busy (e.g. --port 3001)
-DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock \
-  sam local start-api \
+sam local start-api \
   --docker-network calendar-aws-function_default \
   --env-vars env.json \
   --port 3000
+
+# To reduce cold starts during local development, run with warm containers enabled:
+sam local start-api \
+  --docker-network calendar-aws-function_default \
+  --env-vars env.json \
+  --port 3000 \
+  --warm-containers EAGER
 
 # Then test endpoints via API Gateway emulation
 curl -s http://127.0.0.1:3000/schedule-event | head -n 20
@@ -82,14 +72,12 @@ curl -s -X POST http://127.0.0.1:3000/schedule-event \
 aws --endpoint-url=http://localhost:4566 s3 ls s3://de.bas.bodo --recursive
 
 # Option B: Single Lambda invocation with correct API Gateway proxy events
-DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock \
-  sam local invoke WoodleLambdaFunction \
+sam local invoke WoodleLambdaFunction \
   --env-vars env.json \
   --docker-network calendar-aws-function_default \
   --event events/get-schedule-event.json
 
-DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock \
-  sam local invoke WoodleLambdaFunction \
+sam local invoke WoodleLambdaFunction \
   --env-vars env.json \
   --docker-network calendar-aws-function_default \
   --event events/post-schedule-event.json
@@ -104,3 +92,9 @@ DOCKER_HOST=unix:///Users/$(whoami)/.docker/run/docker.sock \
   - Stop it or use another port: add `--port 3001` to `sam local start-api` and call `http://127.0.0.1:3001`.
 - LocalStack connectivity from Lambda: `env.json` sets `AWS_S3_ENDPOINT` to `http://woodle-localstack:4566`
   so the Lambda container can reach LocalStack by hostname over the shared Docker network.
+
+### About --warm-containers
+
+- **What it does**: `--warm-containers EAGER` tells SAM to create and keep warm containers for functions so invocations reuse the same runtime container instead of starting a fresh one for each request. This significantly reduces cold-start times for frameworks like Spring Boot.
+- **Usage**: add `--warm-containers EAGER` to `sam local start-api` (or `sam local invoke`) as shown above.
+- **Notes**: warm containers consume resources locally; you can use `DISABLED` (default) or `LAZY` as alternatives. `EAGER` starts containers at startup and keeps them ready.
